@@ -1,0 +1,62 @@
+{
+  "BD-CN": {
+    "code": "BD-CN",
+    "from_country": "BD",
+    "to_country": "CN",
+    "from_ccy": "BDT",
+    "to_ccy": "CNY",
+    "cap_daily": 500000.0,
+    "cap_ccy": "BDT",
+    "rails": [
+      "bdt_bank_wire",
+      "alipay_crossborder",
+      "unionpay_intl"
+    ],
+    "requires": [
+      "student_visa",
+      "admission_letter",
+      "invoice"
+    ],
+    "notes": "Bangladesh Bank outward student remittance regulations apply. Transactions exceeding the daily cap (500,000 BDT) must be split into multiple compliant tranches."
+  },
+  "IN-GB": {
+    "code": "IN-GB",
+    "from_country": "IN",
+    "to_country": "GB",
+    "from_ccy": "INR",
+    "to_ccy": "GBP",
+    "cap_daily": 700000.0,
+    "cap_ccy": "INR",
+    "rails": [
+      "swift_wire",
+      "wise_transfer",
+      "flywire_edu"
+    ],
+    "requires": [
+      "pan_card",
+      "form_a2",
+      "admission_letter"
+    ],
+    "notes": "Reserve Bank of India LRS (Liberalised Remittance Scheme) guidelines apply. TCS applies above 700,000 INR; PAN card and Form A2 declaration required."
+  },
+  "PH-AE": {
+    "code": "PH-AE",
+    "from_country": "PH",
+    "to_country": "AE",
+    "from_ccy": "PHP",
+    "to_ccy": "AED",
+    "cap_daily": 250000.0,
+    "cap_ccy": "PHP",
+    "rails": [
+      "direct_remit",
+      "instapay_intl",
+      "exchange_house"
+    ],
+    "requires": [
+      "valid_government_id",
+      "proof_of_employment"
+    ],
+    "notes": "Overseas Filipino Worker (OFW) remittance rules apply. Beneficiary IBAN/routing code and mobile wallet verification required."
+  }
+}
+

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-import pycountry, requests
+import pycountry
 from babel.numbers import get_territory_currencies
 from django.conf import settings
 from django.core.cache import cache
@@ -10,8 +10,10 @@ def get_rates():
     if data:
         return data
     try:
+        import httpx
+
         url = settings.FX_API_URL.format(key=settings.FX_API_KEY)
-        r = requests.get(url, timeout=6)
+        r = httpx.get(url, timeout=6)
         r.raise_for_status()
         j = r.json()
         if j.get("result") != "success":
@@ -27,7 +29,16 @@ def get_rates():
         return data
     except Exception:
         stale = cache.get("fx:stale")
-        return {**stale, "live": False} if stale else None
+        if stale:
+            return {**stale, "live": False}
+        from sandbox.fx import _BASE_USD_RATES
+        fallback_rates = {k: float(v) for k, v in _BASE_USD_RATES.items()}
+        return {
+            "rates": fallback_rates,
+            "updated": datetime.now(timezone.utc).isoformat(),
+            "live": False,
+            "source": "Fundora Sandbox Deterministic FX",
+        }
 
 
 def get_countries(codes):

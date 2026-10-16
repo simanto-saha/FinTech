@@ -1,14 +1,18 @@
 import json
+import os
 import re
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.core import mail
+from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.models import User
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import AgentUser, AiAgentConversation, AiAgentQuestion, RegistrationOTP
+from AI_Agent.settings import env_bool, env_int
 
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
@@ -165,6 +169,7 @@ class AuthenticationFlowTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.check_password('Another-Strong-password-456'))
         self.assertEqual(self.client.get(reverse('dashboard')).status_code, 200)
+
 
     def test_authenticated_user_can_submit_question_and_see_it_in_dashboard(self):
         user = User.objects.create_user(
@@ -464,3 +469,33 @@ class AuthenticationFlowTests(TestCase):
         self.assertTrue(response.json()['success'])
         self.assertEqual(response.json()['redirect_url'], reverse('dashboard'))
         self.assertEqual(self.client.get(reverse('dashboard')).status_code, 200)
+
+
+class EnvironmentConfigurationTests(SimpleTestCase):
+    def test_boolean_environment_values_are_parsed(self):
+        for value in ('true', '1', 'yes', 'on'):
+            with self.subTest(value=value), patch.dict(os.environ, {'FUNDORA_TEST_BOOL': value}):
+                self.assertTrue(env_bool('FUNDORA_TEST_BOOL'))
+
+        for value in ('false', '0', 'no', 'off'):
+            with self.subTest(value=value), patch.dict(os.environ, {'FUNDORA_TEST_BOOL': value}):
+                self.assertFalse(env_bool('FUNDORA_TEST_BOOL', default=True))
+
+    def test_invalid_boolean_is_rejected(self):
+        with patch.dict(os.environ, {'FUNDORA_TEST_BOOL': 'release'}):
+            with self.assertRaisesMessage(ImproperlyConfigured, 'FUNDORA_TEST_BOOL'):
+                env_bool('FUNDORA_TEST_BOOL')
+
+    def test_integer_environment_values_are_parsed_and_invalid_values_rejected(self):
+        with patch.dict(os.environ, {'FUNDORA_TEST_INT': '300'}):
+            self.assertEqual(env_int('FUNDORA_TEST_INT', 1), 300)
+        with patch.dict(os.environ, {'FUNDORA_TEST_INT': 'not-an-integer'}):
+            with self.assertRaisesMessage(ImproperlyConfigured, 'FUNDORA_TEST_INT'):
+                env_int('FUNDORA_TEST_INT', 1)
+
+    def test_media_upload_limits_are_configured(self):
+        from django.conf import settings
+
+        self.assertEqual(settings.MEDIA_ROOT, settings.BASE_DIR / 'media')
+        self.assertEqual(settings.FILE_UPLOAD_MAX_MEMORY_SIZE, 10 * 1024 * 1024)
+        self.assertEqual(settings.DATA_UPLOAD_MAX_MEMORY_SIZE, 10 * 1024 * 1024)

@@ -14,4 +14,8 @@ urlpatterns = [
     path('register/resend-otp/', views.resend_registration_otp, name='resend_registration_otp'),
     path('logout/', views.logout_view, name='logout'),
     path("api/fx/", views.fx_api, name="fx_api"),
+    path("api/chat/", views.chat_api, name="chat_api"),
+    path("api/approve/", views.approve_api, name="approve_api"),
+    path("api/status/", views.status_api, name="status_api"),
+    path("api/status/<int:session_id>/", views.status_api, name="status_api_session"),
 ]

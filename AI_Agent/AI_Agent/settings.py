@@ -11,27 +11,63 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
-from decouple import Csv, config
+from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
+load_dotenv(PROJECT_ROOT / '.env', override=True)
+
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized in {'1', 'true', 'yes', 'on'}:
+        return True
+    if normalized in {'0', 'false', 'no', 'off'}:
+        return False
+    raise ImproperlyConfigured(f'{name} must be set to a boolean value.')
+
+
+def env_int(name, default):
+    value = os.getenv(name)
+    try:
+        return int(value) if value is not None else default
+    except ValueError as exc:
+        raise ImproperlyConfigured(f'{name} must be an integer.') from exc
+
+
+def env_value(name, default=''):
+    return os.getenv(name, default)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = env_value('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured('Set SECRET_KEY in .env or the process environment.')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = env_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = config(
-    'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
-    cast=Csv(),
-)
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in env_value('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
+
+if not DEBUG:
+    if SECRET_KEY == 'replace-with-a-unique-secret-key':
+        raise ImproperlyConfigured('Set a unique SECRET_KEY when DEBUG is False.')
+    if not ALLOWED_HOSTS or '*' in ALLOWED_HOSTS:
+        raise ImproperlyConfigured('Set explicit ALLOWED_HOSTS when DEBUG is False.')
 
 
 # Application definition
@@ -43,8 +79,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'Agent',
+    'sandbox',
 ]
 
 MIDDLEWARE = [
@@ -82,26 +118,31 @@ WSGI_APPLICATION = 'AI_Agent.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='127.0.0.1'),
-        'PORT': config('DB_PORT', default='5432'),
+        'ENGINE': env_value('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': env_value('DB_NAME', 'fintech_db'),
+        'USER': env_value('DB_USER'),
+        'PASSWORD': env_value('DB_PASSWORD'),
+        'HOST': env_value('DB_HOST', '127.0.0.1'),
+        'PORT': env_value('DB_PORT', '5432'),
     }
 }
 
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_BACKEND = config(
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    if not DATABASES['default']['NAME'] or not DATABASES['default']['USER'] or not DATABASES['default']['PASSWORD']:
+        if not DEBUG:
+            raise ImproperlyConfigured('Set PostgreSQL database name, user, and password when DEBUG is False.')
+
+EMAIL_HOST = env_value('EMAIL_HOST', 'localhost')
+EMAIL_PORT = env_int('EMAIL_PORT', 587)
+EMAIL_HOST_USER = env_value('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env_value('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', default=False)
+EMAIL_BACKEND = env_value(
     'EMAIL_BACKEND',
-    default='django.core.mail.backends.smtp.EmailBackend',
+    'django.core.mail.backends.smtp.EmailBackend',
 )
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Fundora <noreply@localhost>')
+DEFAULT_FROM_EMAIL = env_value('DEFAULT_FROM_EMAIL', 'Fundora <noreply@localhost>')
 
 
 # Password validation
@@ -139,21 +180,38 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+FILE_UPLOAD_PERMISSIONS = 0o640
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-from pathlib import Path
-from dotenv import load_dotenv
+FX_API_URL = env_value('FX_API_URL', 'https://v6.exchangerate-api.com/v6/{key}/latest/USD')
+FX_API_KEY = env_value('FX_API_KEY')
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+LLM_PROVIDER = env_value('LLM_PROVIDER', 'deepseek')
+DEEPSEEK_API_KEY = env_value('DEEPSEEK_API_KEY')
+DEEPSEEK_URL = env_value('DEEPSEEK_URL', 'https://api.deepseek.com/chat/completions')
+DEEPSEEK_MODEL = env_value('DEEPSEEK_MODEL', 'deepseek-chat')
+VISION_PROVIDER = env_value('VISION_PROVIDER', 'gemini')
+GEMINI_API_KEY = env_value('GEMINI_API_KEY')
+GEMINI_URL = env_value(
+    'GEMINI_URL',
+    'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+)
+GEMINI_MODEL = env_value('GEMINI_MODEL', 'gemini-2.0-flash')
+SANDBOX_MODE = env_bool('SANDBOX_MODE', default=True)
+DEMO = env_bool('demo', default=env_bool('DEMO', default=False))
+APPROVAL_TTL_SECONDS = env_int('APPROVAL_TTL_SECONDS', 300)
+MAX_AGENT_ITERATIONS = env_int('MAX_AGENT_ITERATIONS', 12)
 
-import os
-FX_API_URL = os.getenv("FX_API_URL", "https://open.er-api.com/v6/latest/USD")  # paid plan: ".../v6/{key}/latest/USD"
-FX_API_KEY = os.getenv("FX_API_KEY", "")
+if APPROVAL_TTL_SECONDS <= 0 or MAX_AGENT_ITERATIONS <= 0:
+    raise ImproperlyConfigured('APPROVAL_TTL_SECONDS and MAX_AGENT_ITERATIONS must be positive integers.')
 
 # SIMULATED placeholder assumptions. Replace with verified provider data.
 TRANSFER_METHODS = [

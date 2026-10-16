@@ -1,30 +1,54 @@
-# FinTech AI Agent
+# Fundora
 
-A Django 5.2 project using PostgreSQL.
+Fundora is a Django financial assistant prototype for international students and cross-border users. The intended scope is described in [`idea.md`](idea.md), the implementation sequence is tracked in [`build.md`](build.md), and working rules are in [`instruction.md`](instruction.md).
+
+The existing `Agent` Django app is retained for authentication and current UI compatibility. On case-insensitive filesystems such as Windows it cannot coexist with a second package named `agent`; new agent workflow modules will be added to `Agent`, while deterministic transfer simulation is isolated in the lowercase `sandbox` app.
+
+Transfers and financial data in the current project are simulations. Do not use this prototype to move real money or make financial decisions.
 
 ## Requirements
 
-- Python 3.12+
-- PostgreSQL 14+
+- Python 3.12 or newer
+- PostgreSQL 14 or newer for the target application setup
+- Dependencies from `requirements.txt`
 
-## Local setup (Linux/macOS)
+## Local setup
 
-Run these commands from the repository root:
+Run all commands from the repository root. Create and activate a virtual environment:
+
+**Windows PowerShell**
+
+```powershell
+py -3.12 -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+```
+
+**Linux/macOS**
 
 ```bash
-python3 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Set the PostgreSQL database name, username, password, host, and port in `.env`. For example:
+Edit `.env` before starting Django. Set a unique `SECRET_KEY`, set `DEBUG=True` for local development, and fill in the PostgreSQL database name, user, and password. The `.env.example` values are placeholders. Keep `.env` private and never commit it.
+
+If the PostgreSQL role/database do not exist, create them as a PostgreSQL administrator, replacing the example password with your own:
+
+```sql
+CREATE USER fintech_user WITH PASSWORD 'your_secure_database_password';
+CREATE DATABASE fintech_db OWNER fintech_user;
+```
+
+Set matching values in `.env`:
 
 ```dotenv
-SECRET_KEY=replace-with-a-unique-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
+DB_ENGINE=django.db.backends.postgresql
 DB_NAME=fintech_db
 DB_USER=fintech_user
 DB_PASSWORD=your_secure_database_password
@@ -32,61 +56,65 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 ```
 
-## Email OTP setup
-
-Registration sends a one-time verification code to the email address entered in the sign-up form. Configure the SMTP variables in `.env` before using registration:
+For a temporary UI-only local run when PostgreSQL is unavailable, use SQLite in the ignored `.env`:
 
 ```dotenv
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-16-character-gmail-app-password
-EMAIL_USE_TLS=True
-EMAIL_USE_SSL=False
-DEFAULT_FROM_EMAIL=Fundora <your-email@gmail.com>
+DB_ENGINE=django.db.backends.sqlite3
+DB_NAME=local.sqlite3
 ```
 
-For Gmail, enable 2-Step Verification on the sending account and create an **App Password**. Put that app password in `EMAIL_HOST_PASSWORD`; do not use your normal Gmail password. If you use another email provider, replace `EMAIL_HOST`, `EMAIL_PORT`, TLS/SSL options, and sender credentials with the provider's SMTP settings. Use either TLS or SSL according to your provider, not both.
+SQLite is not the target database and does not replace PostgreSQL verification for completed features.
 
-The values in `.env.example` are placeholders. Replace them with your real email settings in the ignored `.env` file, then restart Django. Never commit real SMTP credentials.
+## Email OTP
 
-Generate a unique random key for `SECRET_KEY` while the virtual environment is active:
+Registration sends a one-time verification code. Configure SMTP in `.env` to deliver it to an inbox. The `.env.example` includes Gmail-shaped placeholders; Gmail requires an App Password created after enabling 2-Step Verification. Do not use your regular Gmail password. For local development without SMTP, set:
+
+```dotenv
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+```
+
+With the console backend, the OTP email is printed in the Django server terminal instead of being delivered.
+
+## Agent and sandbox configuration
+
+The environment template includes optional provider settings for DeepSeek chat and Gemini vision, plus sandbox and approval controls:
+
+- `DEEPSEEK_API_KEY` and `GEMINI_API_KEY` are private credentials; do not commit or paste them into logs.
+- `SANDBOX_MODE=True` keeps transfer behavior simulated.
+- `APPROVAL_TTL_SECONDS` and `MAX_AGENT_ITERATIONS` must be positive integers.
+- FX rates use `FX_API_URL` and `FX_API_KEY`; keep the key private. The live endpoint requires network access and valid provider credentials.
+
+Provider-dependent development should use mocked clients in automated tests so tests do not need network access or real credentials.
+
+## Database and server
+
+From the repository root:
 
 ```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-Make sure PostgreSQL is running. If the database or user does not exist yet, open `psql` as a PostgreSQL administrator and run:
-
-```sql
-CREATE USER fintech_user WITH PASSWORD 'your_secure_database_password';
-CREATE DATABASE fintech_db OWNER fintech_user;
-```
-
-The database name, username, and password in these SQL statements must match `DB_NAME`, `DB_USER`, and `DB_PASSWORD` in `.env`. Replace the example password with a secure password of your own.
-
-## Database migration
-
-From the repository root, apply the database migrations:
-
-```bash
+python AI_Agent/manage.py check
 python AI_Agent/manage.py migrate
-```
-
-## Development server
-
-```bash
 python AI_Agent/manage.py runserver
 ```
 
-Then open <http://127.0.0.1:8000/> in your browser. To use the Django admin site, create a superuser and open <http://127.0.0.1:8000/admin/>:
+Open <http://127.0.0.1:8000/>. The Django admin is at <http://127.0.0.1:8000/admin/>; create an administrator with:
 
 ```bash
 python AI_Agent/manage.py createsuperuser
 ```
 
-## Security
+For ASGI serving, the project exposes `AI_Agent.asgi:application`; the locked production server choice is Uvicorn. Production deployment instructions will be expanded as the application phases are implemented.
 
-- Never commit secrets or database credentials from `.env` to source control; `.env` is already listed in `.gitignore`.
-- Set `DEBUG=False` in production and include only your domain in `ALLOWED_HOSTS`.
+## Development workflow
+
+1. Read [`instruction.md`](instruction.md), [`idea.md`](idea.md), [`build.md`](build.md), and the latest entry in [`test_results.md`](test_results.md).
+2. Work on the earliest incomplete build phase and implement its acceptance checks.
+3. Run focused tests and the complete app suite explicitly: `python AI_Agent/manage.py test Agent sandbox`. A bare `manage.py test` from this nested repository currently discovers no tests.
+4. Run Django checks, migration checks, and the phase-specific scenarios.
+5. Record commands and results in `test_results.md`, then update the corresponding checklist status in `build.md`.
+
+## Security and limitations
+
+- Never commit `.env`, provider/email credentials, uploads, local databases, or generated Python cache files.
+- Keep `DEBUG=False` in production and set only trusted hostnames in `ALLOWED_HOSTS`.
+- The product specification requires deterministic server-side enforcement for compliance, user tier, approval, and transfer execution. The LLM must not own those controls.
+- Simulated rates, compliance results, rails, balances, and transfers are not real financial services.

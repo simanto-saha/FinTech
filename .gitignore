@@ -1,3 +1,8 @@
-.env
+﻿.env
 venv
 comand.txt
+__pycache__/
+*.py[cod]
+.pytest_cache/
+media/
+*.sqlite3

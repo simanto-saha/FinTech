@@ -185,6 +185,41 @@ def submit_ai_question(request):
             question_text=question_text,
         )
 
+        from Agent.models import Session, Approval
+        from Agent import loop
+        from asgiref.sync import async_to_sync
+
+        session = Session.objects.filter(user=request.user).first()
+        if not session:
+            session = Session.objects.create(
+                user=request.user,
+                corridor="BD-CN",
+                tier=Session.Tier.EXECUTE_WITH_APPROVAL,
+            )
+
+        agent_result = async_to_sync(loop.run_agent)(session, question_text)
+        answer_text = agent_result.get("content") or agent_result.get("text") or agent_result.get("summary") or ""
+        question.answer_text = answer_text
+        question.save(update_fields=["answer_text"])
+
+        approval_data = None
+        if agent_result.get("type") == "approval" and agent_result.get("plan_id"):
+            plan_id = agent_result["plan_id"]
+            approval = Approval.objects.filter(
+                plan_id=plan_id,
+                user=request.user,
+                status=Approval.Status.PENDING,
+            ).first()
+            if approval:
+                approval_data = {
+                    "plan_id": plan_id,
+                    "approval_token": approval.token,
+                    "expires_at": approval.expires_at.isoformat(),
+                    "total_cost": agent_result.get("total_cost"),
+                    "target_amount": agent_result.get("target_amount"),
+                    "target_ccy": agent_result.get("target_ccy"),
+                }
+
     return JsonResponse(
         {
             'success': True,
@@ -199,6 +234,8 @@ def submit_ai_question(request):
                 'created_at': question.created_at.isoformat(),
                 'answer_text': question.answer_text,
             },
+            'agent_result': agent_result,
+            'approval': approval_data,
         },
         status=201,
     )
@@ -588,3 +625,202 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+
+def approve_api(request):
+    """
+    Approve or reject a transfer plan using a secure one-time 64-character approval token.
+    Enforces authentication, ownership, pending status, expiry, and state transitions.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required."}, status=401)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST method required."}, status=405)
+
+    data = _request_data(request) or {}
+    token = data.get("token") or request.POST.get("token", "").strip()
+    decision = (data.get("decision") or request.POST.get("decision", "approve")).strip().lower()
+
+    if not token:
+        return JsonResponse({"error": "Approval token is required."}, status=400)
+
+    from Agent.models import Approval, AuditLog, Plan, Session
+    from Agent import security
+    from django.utils import timezone as django_tz
+
+    approval = Approval.objects.filter(token=token).select_related("plan", "plan__session").first()
+    if not approval:
+        return JsonResponse({"error": "Invalid approval token."}, status=404)
+
+    # Ownership check
+    if approval.user_id != request.user.id:
+        return JsonResponse({"error": "Access denied: you do not own this approval."}, status=403)
+
+    # Expiry check
+    now = django_tz.now()
+    if approval.expires_at <= now:
+        if approval.status == Approval.Status.PENDING:
+            approval.status = Approval.Status.EXPIRED
+            approval.save(update_fields=["status"])
+        return JsonResponse({"error": "Approval token has expired. Please request a new transfer plan."}, status=400)
+
+    # Replay / already-used check
+    if approval.status != Approval.Status.PENDING:
+        return JsonResponse({"error": f"Approval token is no longer valid (status: {approval.status})."}, status=400)
+
+    plan = approval.plan
+
+    if decision == "approve":
+        approval.status = Approval.Status.USED
+        approval.save(update_fields=["status"])
+
+        plan.status = Plan.Status.APPROVED
+        plan.approved_at = now
+        plan.save(update_fields=["status", "approved_at", "updated_at"])
+
+        if plan.session:
+            security.log_security_event(
+                session=plan.session,
+                action="plan_approved",
+                status="approved",
+                tier=Session.Tier.EXECUTE_WITH_APPROVAL,
+                meta={"plan_id": plan.id, "target_amount": str(plan.target_amount), "target_ccy": plan.target_ccy},
+            )
+
+        return JsonResponse({
+            "success": True,
+            "status": "approved",
+            "plan_id": plan.id,
+            "approved_at": plan.approved_at.isoformat(),
+            "message": "Plan successfully approved. Ready for execution.",
+        })
+    elif decision == "reject":
+        approval.status = Approval.Status.USED
+        approval.save(update_fields=["status"])
+
+        plan.status = Plan.Status.CANCELLED
+        plan.save(update_fields=["status", "updated_at"])
+
+        if plan.session:
+            security.log_security_event(
+                session=plan.session,
+                action="plan_rejected",
+                status="cancelled",
+                tier=Session.Tier.SUGGEST,
+                meta={"plan_id": plan.id},
+            )
+
+        return JsonResponse({
+            "success": True,
+            "status": "cancelled",
+            "plan_id": plan.id,
+            "message": "Plan has been cancelled.",
+        })
+    else:
+        return JsonResponse({"error": f"Invalid decision '{decision}'. Expected 'approve' or 'reject'."}, status=400)
+
+
+async def chat_api(request):
+    """
+    Async chat endpoint executing the hand-written agent loop.
+    Returns agent responses or human approval interruption requests.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required."}, status=401)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST method required."}, status=405)
+
+    try:
+        body = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        body = {}
+
+    message = body.get("message") or request.POST.get("message", "").strip()
+    session_id = body.get("session_id") or request.POST.get("session_id")
+
+    if not message:
+        return JsonResponse({"error": "Message cannot be empty."}, status=400)
+
+    from Agent.models import Session, Approval
+    from Agent import loop
+    from asgiref.sync import sync_to_async
+
+    # Retrieve or create session for user
+    session = None
+    if session_id:
+        session = await Session.objects.filter(pk=session_id, user=request.user).afirst()
+    if not session:
+        session = await Session.objects.filter(user=request.user).afirst()
+    if not session:
+        session = await Session.objects.acreate(user=request.user, corridor="BD-CN")
+
+    result = await loop.run_agent(session, message)
+
+    # If approval is needed, attach token and metadata for user UI
+    if result.get("type") == "approval" and result.get("plan_id"):
+        plan_id = result["plan_id"]
+        approval = await Approval.objects.filter(
+            plan_id=plan_id,
+            user=request.user,
+            status=Approval.Status.PENDING,
+        ).afirst()
+        if approval:
+            result["approval_token"] = approval.token
+            result["expires_at"] = approval.expires_at.isoformat()
+
+    result["session_id"] = session.id
+    return JsonResponse(result)
+
+
+def status_api(request, session_id=None):
+    """
+    Status dashboard endpoint returning simulated balances, ledger entries, and active plans.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required."}, status=401)
+
+    from Agent.models import Plan, LedgerEntry
+    from sandbox import fx
+
+    user_plans = Plan.objects.filter(user=request.user).order_by("-created_at")[:5]
+    user_ledger = LedgerEntry.objects.filter(user=request.user).order_by("-ts")[:10]
+
+    plans_data = [
+        {
+            "id": p.id,
+            "status": p.status,
+            "target_amount": str(p.target_amount),
+            "target_ccy": p.target_ccy,
+            "total_cost": str(p.total_cost),
+            "created_at": p.created_at.isoformat(),
+            "executed_at": p.executed_at.isoformat() if p.executed_at else None,
+        }
+        for p in user_plans
+    ]
+
+    ledger_data = [
+        {
+            "id": l.id,
+            "amount": str(l.amount),
+            "currency": l.currency,
+            "entry_type": l.entry_type,
+            "status": l.status,
+            "counterparty": l.counterparty,
+            "timestamp": l.ts.isoformat(),
+        }
+        for l in user_ledger
+    ]
+
+    return JsonResponse({
+        "user": request.user.username,
+        "balances": [
+            {"currency": "BDT", "amount": "1500000.00"},
+            {"currency": "CNY", "amount": "45000.00"},
+            {"currency": "USD", "amount": "2500.00"},
+        ],
+        "recent_plans": plans_data,
+        "ledger": ledger_data,
+        "is_simulated": True,
+    })

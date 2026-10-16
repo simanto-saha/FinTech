@@ -1,0 +1,218 @@
+[
+  {
+    "slug": "szu",
+    "name": "Shenzhen University",
+    "country": "CN",
+    "aliases": [
+      "Shenzhen University",
+      "SZU",
+      "深大",
+      "Shen Da"
+    ],
+    "payment_channels": [
+      {
+        "channel": "Bank of China Wire",
+        "rail": "bdt_bank_wire",
+        "currency": "CNY",
+        "speed": "2-3 business days",
+        "fee_pct": 0.005,
+        "fixed_fee": 50.0,
+        "notes": "Direct cross-border SWIFT wire to Shenzhen University BOC account."
+      },
+      {
+        "channel": "Alipay Cross-Border Education",
+        "rail": "alipay_crossborder",
+        "currency": "CNY",
+        "speed": "Instant - 2 hours",
+        "fee_pct": 0.008,
+        "fixed_fee": 20.0,
+        "notes": "Alipay International Student Tuition payment rail with instant payment proof."
+      },
+      {
+        "channel": "UnionPay International",
+        "rail": "unionpay_intl",
+        "currency": "CNY",
+        "speed": "1 business day",
+        "fee_pct": 0.006,
+        "fixed_fee": 30.0,
+        "notes": "UnionPay online educational settlement portal."
+      }
+    ],
+    "common_issues": [
+      "Student ID must be present in payment reference/memo",
+      "Daily remittance cap applies for international students without resident permit",
+      "Tuition payments in foreign currency are converted at the designated BOC settlement rate"
+    ],
+    "support": {
+      "email": "szu_intl@szu.edu.cn",
+      "phone": "+86-755-26536114",
+      "office": "College of International Exchange, Zhaoxi Building"
+    }
+  },
+  {
+    "slug": "tsinghua",
+    "name": "Tsinghua University",
+    "country": "CN",
+    "aliases": [
+      "Tsinghua University",
+      "THU",
+      "清华大学",
+      "Tsinghua"
+    ],
+    "payment_channels": [
+      {
+        "channel": "ICBC Direct Education Wire",
+        "rail": "bdt_bank_wire",
+        "currency": "CNY",
+        "speed": "1-2 business days",
+        "fee_pct": 0.005,
+        "fixed_fee": 45.0,
+        "notes": "Official ICBC Beijing university settlement account."
+      },
+      {
+        "channel": "Alipay University Pay",
+        "rail": "alipay_crossborder",
+        "currency": "CNY",
+        "speed": "Instant",
+        "fee_pct": 0.009,
+        "fixed_fee": 25.0,
+        "notes": "Direct student portal integration via Alipay."
+      }
+    ],
+    "common_issues": [
+      "Admission number must match passport precisely",
+      "Fall semester tuition cutoff is strictly enforced on August 30"
+    ],
+    "support": {
+      "email": "iso@tsinghua.edu.cn",
+      "phone": "+86-10-62784860",
+      "office": "International Students & Scholars Center"
+    }
+  },
+  {
+    "slug": "nus",
+    "name": "National University of Singapore",
+    "country": "SG",
+    "aliases": [
+      "National University of Singapore",
+      "NUS"
+    ],
+    "payment_channels": [
+      {
+        "channel": "Flywire Education Rail",
+        "rail": "flywire_edu",
+        "currency": "SGD",
+        "speed": "1-2 business days",
+        "fee_pct": 0.007,
+        "fixed_fee": 15.0,
+        "notes": "Official NUS international student payment portal powered by Flywire."
+      },
+      {
+        "channel": "Convera GlobalPay",
+        "rail": "wise_transfer",
+        "currency": "SGD",
+        "speed": "2-3 business days",
+        "fee_pct": 0.008,
+        "fixed_fee": 20.0,
+        "notes": "Convera student payment platform for overseas wire transfers."
+      }
+    ],
+    "common_issues": [
+      "Payer reference must be the 9-character Student Matriculation number",
+      "Bank charges must be borne by remitter (OUR code required)"
+    ],
+    "support": {
+      "email": "financialservices@nus.edu.sg",
+      "phone": "+65-6516-2849",
+      "office": "Office of Financial Services, University Hall"
+    }
+  },
+  {
+    "slug": "manchester",
+    "name": "University of Manchester",
+    "country": "GB",
+    "aliases": [
+      "University of Manchester",
+      "UoM",
+      "Manchester"
+    ],
+    "payment_channels": [
+      {
+        "channel": "Convera GlobalPay for Students",
+        "rail": "wise_transfer",
+        "currency": "GBP",
+        "speed": "2-3 business days",
+        "fee_pct": 0.006,
+        "fixed_fee": 10.0,
+        "notes": "Official university portal for cross-border tuition payments."
+      },
+      {
+        "channel": "Flywire Education Rail",
+        "rail": "flywire_edu",
+        "currency": "GBP",
+        "speed": "1-2 business days",
+        "fee_pct": 0.007,
+        "fixed_fee": 15.0,
+        "notes": "Direct international wire settlement via Flywire."
+      },
+      {
+        "channel": "SWIFT International Wire",
+        "rail": "swift_wire",
+        "currency": "GBP",
+        "speed": "3-5 business days",
+        "fee_pct": 0.015,
+        "fixed_fee": 25.0,
+        "notes": "Standard international bank transfer to NatWest University account."
+      }
+    ],
+    "common_issues": [
+      "Must quote 7-digit student ID in payment reference",
+      "Installment plans require pre-authorization with the student fees office"
+    ],
+    "support": {
+      "email": "tuitionfees@manchester.ac.uk",
+      "phone": "+44-161-275-5000",
+      "office": "Student Services Centre, Burlington Street"
+    }
+  },
+  {
+    "slug": "melbourne",
+    "name": "University of Melbourne",
+    "country": "AU",
+    "aliases": [
+      "University of Melbourne",
+      "UniMelb",
+      "Melbourne"
+    ],
+    "payment_channels": [
+      {
+        "channel": "Flywire",
+        "rail": "flywire_edu",
+        "currency": "AUD",
+        "speed": "1-2 business days",
+        "fee_pct": 0.008,
+        "fixed_fee": 20.0,
+        "notes": "University of Melbourne preferred international payment gateway."
+      },
+      {
+        "channel": "Telegraphic Transfer (SWIFT)",
+        "rail": "swift_wire",
+        "currency": "AUD",
+        "speed": "3-5 business days",
+        "fee_pct": 0.012,
+        "fixed_fee": 30.0,
+        "notes": "Direct bank wire to ANZ University account."
+      }
+    ],
+    "common_issues": [
+      "Statement of Account invoice number must be specified in the reference",
+      "Payment must be cleared before census date to prevent enrollment cancellation"
+    ],
+    "support": {
+      "email": "student-support@unimelb.edu.au",
+      "phone": "+61-3-9035-5511",
+      "office": "Stop 1, 757 Swanston Street, Parkville"
+    }
+  }
+]
+
