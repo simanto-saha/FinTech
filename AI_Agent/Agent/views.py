@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import AgentUser, RegistrationOTP
+from .models import AgentUser, AiAgentQuestion, RegistrationOTP
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,67 @@ def home(request):
 @login_required(login_url='login')
 def dashboard(request):
     agent_user = AgentUser.objects.get(user=request.user)
-    return render(request, 'Agent/dashboard.html', {'agent_user': agent_user})
+    questions = list(
+        AiAgentQuestion.objects.filter(user=request.user).order_by('-created_at')[:20]
+    )
+    questions.reverse()
+    return render(
+        request,
+        'Agent/dashboard.html',
+        {'agent_user': agent_user, 'questions': questions},
+    )
+
+# This is AI Agent Question Submission View
+@login_required(login_url='login')
+def submit_ai_question(request):
+    if request.method != 'POST':
+        return JsonResponse(
+            {'success': False, 'message': 'POST is required.'},
+            status=405,
+        )
+
+    data = _request_data(request)
+    if data is None:
+        return JsonResponse(
+            {'success': False, 'message': 'The submitted data is not valid JSON.'},
+            status=400,
+        )
+
+    question_text = data.get('question_text')
+    if not isinstance(question_text, str):
+        return JsonResponse(
+            {'success': False, 'message': 'Enter a question first.'},
+            status=400,
+        )
+
+    question_text = question_text.strip()
+    if not question_text:
+        return JsonResponse(
+            {'success': False, 'message': 'Enter a question first.'},
+            status=400,
+        )
+    if len(question_text) > 4000:
+        return JsonResponse(
+            {'success': False, 'message': 'Keep your question under 4,000 characters.'},
+            status=400,
+        )
+
+    question = AiAgentQuestion.objects.create(
+        user=request.user,
+        question_text=question_text,
+    )
+    return JsonResponse(
+        {
+            'success': True,
+            'question': {
+                'id': question.pk,
+                'question_text': question.question_text,
+                'created_at': question.created_at.isoformat(),
+                'answer_text': question.answer_text,
+            },
+        },
+        status=201,
+    )
 
 
 def _request_data(request):

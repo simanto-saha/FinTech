@@ -26,3 +26,14 @@ class RegistrationOTP(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class AiAgentQuestion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    question_text = models.TextField()
+    answer_text = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.question_text

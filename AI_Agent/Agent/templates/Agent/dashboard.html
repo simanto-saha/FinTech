@@ -2,7 +2,7 @@
 {% block title %}Dashboard{% endblock %}
 {% block head %}<style>
 .app{display:flex;justify-content:center;min-height:calc(100vh - 32px)}
-main{width:100%;max-width:1100px;margin-inline:auto;padding:26px clamp(16px,3vw,36px)}
+main{width:100%;max-width:1100px;margin-inline:auto;padding:26px clamp(16px,3vw,36px) 150px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap}
 .top h1{font-size:1.7rem}
 .g{display:grid;gap:16px}
@@ -21,11 +21,32 @@ ul{list-style:none;padding:0}
 li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
 li:last-child{border:0}
 h2{font-size:1.1rem;margin-bottom:4px}
-.chat{display:flex;gap:8px;margin-top:12px}
-.chat input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font:inherit}
-.bubble{background:var(--sky);padding:12px 14px;border-radius:14px;font-size:.92rem;margin-top:10px}
+.assistant-thread{display:grid;gap:18px;width:min(100%,780px);margin:34px auto 0}
+.assistant-message{max-width:88%;padding:14px 18px;border-radius:18px;font-size:.96rem;overflow-wrap:anywhere;white-space:pre-wrap}
+.assistant-message.assistant{justify-self:start;background:var(--sky)}
+.assistant-message.user{justify-self:end;background:var(--ink);color:#fff}
+.assistant-answer{margin-top:8px;color:var(--mute);font-size:.88rem}
+.assistant-composer-wrap{position:fixed;right:0;bottom:0;left:264px;z-index:40;padding:24px clamp(16px,4vw,48px) calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(246,248,249,0),var(--paper) 32%)}
+.sidebar-collapsed .assistant-composer-wrap{left:76px}
+.assistant-composer{display:flex;align-items:center;gap:10px;width:min(100%,820px);min-height:58px;margin:0 auto;padding:8px 10px 8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);box-shadow:0 8px 28px rgba(18,38,58,.09)}
+.assistant-composer textarea{flex:1;min-width:0;max-height:130px;resize:none;padding:10px 4px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit}
+.assistant-composer textarea:focus{outline:0}
+.assistant-composer textarea::placeholder{color:var(--mute)}
+.composer-icon,.composer-mode,.composer-submit{display:inline-flex;flex:none;align-items:center;justify-content:center;border:0;cursor:pointer}
+.composer-icon{width:38px;height:38px;border-radius:50%;background:transparent;color:var(--ink)}
+.composer-icon:hover{background:var(--sky);color:var(--teal-d)}
+.composer-icon svg,.composer-submit svg{width:20px;height:20px}
+.composer-mode{gap:6px;padding:8px 10px;border-radius:999px;background:transparent;color:var(--mute);font:500 .9rem "DM Sans",sans-serif;white-space:nowrap}
+.composer-mode:hover,.composer-mode[aria-pressed="true"]{background:var(--sky);color:var(--teal-d)}
+.composer-submit{width:40px;height:40px;border-radius:50%;background:var(--teal);color:#fff}
+.composer-submit:hover{background:var(--teal-d)}
+.composer-submit:disabled{opacity:.55;cursor:wait}
+.question-status{width:min(100%,820px);min-height:0;margin:7px auto 0;color:var(--coral);font-size:.82rem;text-align:center}
+.question-status:empty{display:none}
+.question-status.success{color:var(--teal-d)}
+.composer-plus-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (max-width:980px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-@media (max-width:720px){.g4{grid-template-columns:1fr}}
+@media(max-width:720px){.g4{grid-template-columns:1fr}.assistant-composer-wrap,.sidebar-collapsed .assistant-composer-wrap{left:76px;padding:16px 10px calc(12px + env(safe-area-inset-bottom,0px))}.assistant-composer{gap:4px;padding-left:8px}.composer-mode{font-size:0;gap:0;padding:8px}.composer-mode svg{width:20px;height:20px}.composer-icon{width:34px;height:34px}.composer-submit{width:38px;height:38px}.assistant-composer textarea{font-size:16px}}
 </style>{% endblock %}
 {% block content %}
 <div class="app">
@@ -60,7 +81,7 @@ h2{font-size:1.1rem;margin-bottom:4px}
     </section>
   </div>
 
-  <div class="g g2">
+  <div class="g">
     <section class="card" id="aid">
       <h2>Upcoming deadlines</h2>
       <ul>
@@ -70,12 +91,132 @@ h2{font-size:1.1rem;margin-bottom:4px}
         <li><span>Rent, shared flat</span><span class="tag">1 Nov</span></li>
       </ul>
     </section>
-    <section class="card" id="ask">
-      <h2>Ask the assistant</h2>
-      <div class="bubble">Rates are about 1.4% better than last week. Sending this week could save you ৳ 3,100.</div>
-      <form class="chat" onsubmit="return false"><input aria-label="Ask a question" placeholder="Can I afford a flat near campus?"><button class="btn">Ask</button></form>
-    </section>
   </div>
+  {% if questions %}
+  <section class="assistant-thread" id="assistant-history" aria-label="Previous assistant questions" aria-live="polite">
+    {% for item in questions %}
+      <div class="assistant-message user">{{ item.question_text }}</div>
+      {% if item.answer_text %}<div class="assistant-message assistant">{{ item.answer_text }}</div>{% endif %}
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="assistant-thread" id="assistant-history" aria-label="Assistant conversation" aria-live="polite"></section>
+  {% endif %}
 </main>
 </div>
+<div class="assistant-composer-wrap">
+  <form class="assistant-composer" id="assistant-question-form" action="{% url 'submit_ai_question' %}" method="post">
+    {% csrf_token %}
+    <button class="composer-icon" type="button" id="composer-plus" aria-label="Attachments are not available yet" title="Attachments are not available yet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <label class="composer-plus-label" for="assistant-question-input">Ask a question</label>
+    <textarea id="assistant-question-input" name="question_text" aria-label="Ask a question" placeholder="Ask anything" maxlength="4000" rows="1" required></textarea>
+    <button class="composer-mode" type="button" id="think-mode" aria-pressed="false" title="Toggle think mode">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5a7 7 0 1 1 7 0c-.8.6-1.3 1.4-1.5 2.5h-4c-.2-1.1-.7-1.9-1.5-2.5Z"/></svg>
+      <span>Think</span>
+    </button>
+    <button class="composer-icon" type="button" id="voice-input" aria-label="Use voice input" title="Use voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
+    </button>
+    <button class="composer-submit" type="submit" aria-label="Send question" title="Send question">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+    </button>
+  </form>
+  <p class="question-status" id="question-status" role="status" aria-live="polite"></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const questionForm = document.getElementById('assistant-question-form');
+if (questionForm) {
+  const questionInput = questionForm.querySelector('textarea[name="question_text"]');
+  questionInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      questionForm.requestSubmit();
+    }
+  });
+
+  questionForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const input = questionInput;
+    const submit = questionForm.querySelector('button[type="submit"]');
+    const status = document.getElementById('question-status');
+    const questionText = input.value.trim();
+    if (!questionText) {
+      status.textContent = 'Enter a question first.';
+      return;
+    }
+
+    submit.disabled = true;
+    status.classList.remove('success');
+    status.textContent = 'Saving your question…';
+    try {
+      const response = await fetch(questionForm.action, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': questionForm.querySelector('[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({question_text: questionText}),
+        credentials: 'same-origin'
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        status.textContent = result.message || 'Could not save your question.';
+        return;
+      }
+
+      const message = document.createElement('div');
+      message.className = 'assistant-message user';
+      message.textContent = result.question.question_text;
+      document.getElementById('assistant-history').append(message);
+      input.value = '';
+      status.textContent = 'Your question has been saved.';
+      status.classList.add('success');
+      message.scrollIntoView({block: 'center', behavior: 'smooth'});
+    } catch (error) {
+      status.textContent = 'Could not connect. Please try again.';
+    } finally {
+      submit.disabled = false;
+    }
+  });
+}
+
+const thinkMode = document.getElementById('think-mode');
+if (thinkMode) {
+  thinkMode.addEventListener('click', () => {
+    const active = thinkMode.getAttribute('aria-pressed') !== 'true';
+    thinkMode.setAttribute('aria-pressed', String(active));
+  });
+}
+
+const voiceInput = document.getElementById('voice-input');
+if (voiceInput) {
+  voiceInput.addEventListener('click', () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const status = document.getElementById('question-status');
+    if (!SpeechRecognition) {
+      status.textContent = 'Voice input is not supported by this browser.';
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = document.documentElement.lang || 'en-US';
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const input = document.getElementById('assistant-question-input');
+      input.value = `${input.value}${input.value ? ' ' : ''}${event.results[0][0].transcript}`;
+      input.focus();
+    };
+    recognition.onerror = () => {
+      status.textContent = 'Voice input could not be recorded. Please try again.';
+    };
+    status.textContent = 'Listening…';
+    recognition.start();
+  });
+}
+</script>
 {% endblock %}

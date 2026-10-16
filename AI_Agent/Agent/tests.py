@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import AgentUser, RegistrationOTP
+from .models import AgentUser, AiAgentQuestion, RegistrationOTP
 
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
@@ -52,7 +52,67 @@ class AuthenticationFlowTests(TestCase):
         self.assertContains(response, 'id="app-sidebar"')
         self.assertContains(response, 'aria-label="Collapse sidebar"')
         self.assertContains(response, 'href="/logout/"')
+        self.assertContains(response, 'id="assistant-question-form"')
+        self.assertContains(response, 'placeholder="Ask anything"')
+        self.assertNotContains(response, 'Ask the assistant')
         self.assertNotContains(response, '<header class="site-head">')
+
+    def test_authenticated_user_can_submit_question_and_see_it_in_dashboard(self):
+        user = User.objects.create_user(
+            username='student@example.com',
+            email='student@example.com',
+            password='Strong-test-password-123',
+        )
+        AgentUser.objects.create(
+            user=user,
+            Full_Name='Test Student',
+            email='student@example.com',
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse('submit_ai_question'),
+            data=json.dumps({'question_text': '  Can I afford a flat near campus?  '}),
+            content_type='application/json',
+            HTTP_ACCEPT='application/json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(response.json()['success'])
+        question = AiAgentQuestion.objects.get()
+        self.assertEqual(question.user, user)
+        self.assertEqual(question.question_text, 'Can I afford a flat near campus?')
+        dashboard_response = self.client.get(reverse('dashboard'))
+        self.assertContains(dashboard_response, 'Can I afford a flat near campus?')
+
+    def test_anonymous_user_cannot_submit_ai_question(self):
+        response = self.client.post(
+            reverse('submit_ai_question'),
+            data=json.dumps({'question_text': 'A question'}),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(AiAgentQuestion.objects.count(), 0)
+
+    def test_empty_ai_question_is_rejected(self):
+        user = User.objects.create_user(
+            username='student@example.com',
+            email='student@example.com',
+            password='Strong-test-password-123',
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse('submit_ai_question'),
+            data=json.dumps({'question_text': '   '}),
+            content_type='application/json',
+            HTTP_ACCEPT='application/json',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()['success'])
+        self.assertEqual(AiAgentQuestion.objects.count(), 0)
 
     def test_registration_sends_otp_without_creating_account_until_verified(self):
         response = self.client.post(
