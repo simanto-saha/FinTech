@@ -46,6 +46,62 @@
 .site-head .btn.ghost:hover{background:var(--p-paper)}
 .site-head a:focus-visible,.site-head button:focus-visible,.auth-dialog :focus-visible,.site-foot a:focus-visible{outline:none;box-shadow:var(--p-ring)}
 
+/* ---------- Signed-in application sidebar ---------- */
+.app-sidebar{position:fixed;inset:0 auto 0 0;z-index:60;display:flex;width:264px;flex-direction:column;padding:16px 12px;
+  background:#f7f9fa;border-right:1px solid #e2e8ee;color:#17212b;transition:width .2s ease}
+.sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 22px}
+.sidebar-brand{display:flex;align-items:center;gap:10px;overflow:hidden;white-space:nowrap;font-family:'Bricolage Grotesque',sans-serif;font-size:1.2rem;font-weight:800;color:#17212b}
+.sidebar-brand i{display:inline-block;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#12b5a1,#0a7a6d);position:relative;flex:none}
+.sidebar-brand i::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:3px;border-radius:3px;background:#fff;transform:translateY(-50%) rotate(-28deg)}
+.sidebar-toggle{display:grid;width:38px;height:38px;place-items:center;flex:none;border:1px solid transparent;border-radius:11px;background:transparent;color:#52606d;cursor:pointer}
+.sidebar-toggle:hover,.sidebar-link:hover,.sidebar-logout:hover{background:#e9eef1;color:#17212b}
+.sidebar-toggle svg{width:20px;height:20px;transition:transform .2s}
+.sidebar-nav{display:grid;gap:5px}
+.sidebar-link,.sidebar-logout{display:flex;min-height:44px;align-items:center;gap:13px;padding:10px 12px;border:0;border-radius:11px;background:transparent;color:#43515e;text-align:left;text-decoration:none;font:500 .95rem 'DM Sans',sans-serif;white-space:nowrap;cursor:pointer}
+.sidebar-link svg,.sidebar-logout svg{width:20px;height:20px;flex:none}
+.sidebar-link.active{background:#e5f6f3;color:#0a7a6d;font-weight:700}
+.sidebar-spacer{flex:1}
+.sidebar-account{display:flex;align-items:center;gap:10px;padding:12px 5px 2px;border-top:1px solid #e2e8ee}
+.sidebar-avatar{display:grid;width:36px;height:36px;place-items:center;flex:none;border-radius:50%;background:#e5f6f3;color:#0a7a6d;font-weight:700}
+.sidebar-identity{min-width:0;flex:1}
+.sidebar-identity strong,.sidebar-identity span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-identity strong{font-size:.88rem;color:#17212b}
+.sidebar-identity span{font-size:.76rem;color:#71808c}
+.sidebar-logout{width:40px;min-height:40px;justify-content:center;padding:8px}
+.sidebar-scrim{display:none}
+.authenticated #page-content{min-height:calc(100vh - 32px);margin-left:264px;transition:margin-left .2s ease}
+.authenticated .site-foot{display:none}
+.sidebar-collapsed .app-sidebar{width:76px}
+.sidebar-collapsed .sidebar-top{flex-direction:column-reverse;justify-content:center;padding-bottom:22px}
+.sidebar-collapsed .sidebar-brand{width:38px;height:38px;justify-content:center}
+.sidebar-collapsed .sidebar-brand span,.sidebar-collapsed .sidebar-link span,.sidebar-collapsed .sidebar-identity{display:none}
+.sidebar-collapsed .sidebar-link,.sidebar-collapsed .sidebar-logout{justify-content:center;padding-inline:8px}
+.sidebar-collapsed .sidebar-account{justify-content:center;padding-inline:0}
+.sidebar-collapsed .sidebar-logout{width:36px}
+.sidebar-collapsed .sidebar-toggle svg{transform:rotate(180deg)}
+.sidebar-collapsed #page-content{margin-left:76px}
+@media(max-width:720px){
+  .app-sidebar{width:76px}
+  .sidebar-top{flex-direction:column-reverse;justify-content:center;padding-bottom:22px}
+  .sidebar-brand{width:38px;height:38px;justify-content:center}
+  .sidebar-brand span,.sidebar-link span,.sidebar-identity{display:none}
+  .sidebar-link,.sidebar-logout{justify-content:center;padding-inline:8px}
+  .sidebar-account{justify-content:center;padding-inline:0}
+  .sidebar-logout{width:36px}
+  .sidebar-toggle svg{transform:rotate(180deg)}
+  .authenticated #page-content,.sidebar-collapsed #page-content{margin-left:76px}
+  .sidebar-expanded .app-sidebar{width:min(82vw,280px);box-shadow:16px 0 45px rgba(15,34,51,.16)}
+  .sidebar-expanded .sidebar-top{flex-direction:row;justify-content:space-between}
+  .sidebar-expanded .sidebar-brand{width:auto;justify-content:flex-start}
+  .sidebar-expanded .sidebar-brand span,.sidebar-expanded .sidebar-link span,.sidebar-expanded .sidebar-identity{display:block}
+  .sidebar-expanded .sidebar-link{justify-content:flex-start}
+  .sidebar-expanded .sidebar-account{justify-content:initial;padding-inline:5px}
+  .sidebar-expanded .sidebar-logout{width:40px}
+  .sidebar-expanded .sidebar-toggle svg{transform:none}
+  .sidebar-expanded .sidebar-scrim{position:fixed;inset:0 0 0 76px;z-index:-1;display:block;border:0;background:rgba(15,34,51,.18)}
+}
+@media(prefers-reduced-motion:reduce){.app-sidebar,.authenticated #page-content,.sidebar-toggle svg{transition:none}}
+
 /* ---------- Auth dialog ---------- */
 .auth-dialog{width:min(92vw,440px);max-height:92vh;overflow:auto;padding:0;margin:auto;border:0;border-radius:24px;
   background:var(--p-card);color:var(--p-ink);box-shadow:0 30px 80px -20px rgba(8,22,34,.55),0 0 0 1px rgba(15,34,51,.06)}
@@ -140,7 +196,37 @@
 </style>
 {% block head %}{% endblock %}
 </head>
-<body>
+<body{% if user.is_authenticated %} class="authenticated"{% endif %}>
+{% if user.is_authenticated %}
+<aside class="app-sidebar" id="app-sidebar" aria-label="Application sidebar">
+  <div class="sidebar-top">
+    <a class="sidebar-brand" href="{% url 'home' %}" aria-label="Pathway home"><i></i><span>Pathway</span></a>
+    <button class="sidebar-toggle" type="button" aria-label="Collapse sidebar" aria-expanded="true" aria-controls="app-sidebar" title="Collapse sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    <a class="sidebar-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg><span>Dashboard</span>
+    </a>
+    <a class="sidebar-link" href="{% url 'home' %}#features">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 14.8 9.2 21 12l-6.2 2.8L12 21l-2.8-6.2L3 12l6.2-2.8L12 3Z"/></svg><span>Features</span>
+    </a>
+    <a class="sidebar-link" href="{% url 'home' %}#how">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2-2.4 4"/><path d="M12 17h.01"/></svg><span>How it works</span>
+    </a>
+  </nav>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-account">
+    <span class="sidebar-avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
+    <div class="sidebar-identity"><strong>{{ user.username }}</strong><span>Signed in</span></div>
+    <a class="sidebar-logout" href="{% url 'logout' %}" aria-label="Log out" title="Log out">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+    </a>
+  </div>
+  <button class="sidebar-scrim" type="button" aria-label="Close sidebar"></button>
+</aside>
+{% else %}
 <header class="site-head">
   <div class="wrap nav">
     <a class="logo" href="{% url 'home' %}"><i></i>Pathway</a>
@@ -160,6 +246,7 @@
     </div>
   </div>
 </header>
+{% endif %}
 
 <dialog class="auth-dialog" id="login-modal" aria-labelledby="login-title">
   <div class="dialog-hero">
@@ -238,8 +325,11 @@
   </div>
 </dialog>
 
+<div id="page-content">
 {% block content %}{% endblock %}
+</div>
 
+{% if not user.is_authenticated %}
 <footer class="site-foot">
   <div class="wrap">
     <div class="site-foot-main">
@@ -256,8 +346,39 @@
     <div class="site-foot-bottom"><span>Your next step starts here.</span><a href="{% url 'home' %}" aria-label="Back to top">Back to top ↑</a></div>
   </div>
 </footer>
+{% endif %}
 {% block scripts %}{% endblock %}
 <script>
+const sidebar = document.getElementById('app-sidebar');
+if (sidebar) {
+  const toggle = sidebar.querySelector('.sidebar-toggle');
+  const scrim = sidebar.querySelector('.sidebar-scrim');
+  const mobileQuery = window.matchMedia('(max-width: 720px)');
+  const savedState = localStorage.getItem('pathway-sidebar-collapsed');
+
+  function setSidebarCollapsed(collapsed) {
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    document.body.classList.toggle('sidebar-expanded', !collapsed && mobileQuery.matches);
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+    toggle.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  }
+
+  setSidebarCollapsed(savedState === null ? mobileQuery.matches : savedState === 'true');
+  toggle.addEventListener('click', () => {
+    const collapsed = !document.body.classList.contains('sidebar-collapsed');
+    localStorage.setItem('pathway-sidebar-collapsed', String(collapsed));
+    setSidebarCollapsed(collapsed);
+  });
+  scrim.addEventListener('click', () => {
+    localStorage.setItem('pathway-sidebar-collapsed', 'true');
+    setSidebarCollapsed(true);
+  });
+  mobileQuery.addEventListener('change', () => {
+    setSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
+  });
+}
+
 document.querySelectorAll('[data-open-modal]').forEach((button) => {
   button.addEventListener('click', () => {
     const target = document.getElementById(button.dataset.openModal);

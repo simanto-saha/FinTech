@@ -1,11 +1,7 @@
 {% extends "Agent/base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block head %}<style>
-.app{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 70px)}
-aside{background:var(--card);border-right:1px solid var(--line);padding:22px 16px;position:sticky;top:0;height:100vh}
-aside .logo{margin-bottom:26px;padding-left:8px}
-aside a{display:block;padding:10px 12px;border-radius:10px;color:var(--mute);margin-bottom:4px;font-weight:500}
-aside a.on,aside a:hover{background:var(--sky);color:var(--teal-d)}
+.app{min-height:calc(100vh - 32px)}
 main{padding:26px clamp(16px,3vw,36px);max-width:1100px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap}
 .top h1{font-size:1.7rem}
@@ -29,13 +25,10 @@ h2{font-size:1.1rem;margin-bottom:4px}
 .chat input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font:inherit}
 .bubble{background:var(--sky);padding:12px 14px;border-radius:14px;font-size:.92rem;margin-top:10px}
 @media (max-width:980px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-@media (max-width:720px){.app{grid-template-columns:1fr}aside{position:static;height:auto;display:flex;gap:6px;overflow-x:auto;padding:12px;border-right:0;border-bottom:1px solid var(--line)}aside .logo{display:none}aside a{white-space:nowrap;margin:0}.g4{grid-template-columns:1fr}}
+@media (max-width:720px){.g4{grid-template-columns:1fr}}
 </style>{% endblock %}
 {% block content %}
 <div class="app">
-<aside>
-  <a class="on" href="dashboard.html">Overview</a><a href="#pay">Payments</a><a href="#bud">Budget</a><a href="#send">Send money</a><a href="#aid">Scholarships</a><a href="#ask">Assistant</a>
-</aside>
 <main>
   <div class="top"><div><h1>Hi Tumi 👋</h1><p class="muted">You are 23 days from your next tuition payment.</p></div><a class="btn" href="#send">Send money</a></div>
 

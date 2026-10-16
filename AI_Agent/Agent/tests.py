@@ -33,6 +33,27 @@ class AuthenticationFlowTests(TestCase):
         self.assertEqual(login_page.status_code, 200)
         self.assertContains(login_page, 'id="login-modal"')
 
+    def test_authenticated_pages_use_sidebar_instead_of_header(self):
+        user = User.objects.create_user(
+            username='student@example.com',
+            email='student@example.com',
+            password='Strong-test-password-123',
+        )
+        AgentUser.objects.create(
+            user=user,
+            Full_Name='Test Student',
+            email='student@example.com',
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="app-sidebar"')
+        self.assertContains(response, 'aria-label="Collapse sidebar"')
+        self.assertContains(response, 'href="/logout/"')
+        self.assertNotContains(response, '<header class="site-head">')
+
     def test_registration_sends_otp_without_creating_account_until_verified(self):
         response = self.client.post(
             reverse('register'),
