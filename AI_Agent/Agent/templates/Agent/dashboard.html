@@ -1,8 +1,8 @@
 {% extends "Agent/base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block head %}<style>
-.app{min-height:calc(100vh - 32px)}
-main{padding:26px clamp(16px,3vw,36px);max-width:1100px}
+.app{display:flex;justify-content:center;min-height:calc(100vh - 32px)}
+main{width:100%;max-width:1100px;margin-inline:auto;padding:26px clamp(16px,3vw,36px)}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap}
 .top h1{font-size:1.7rem}
 .g{display:grid;gap:16px}
