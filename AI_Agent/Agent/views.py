@@ -1,15 +1,30 @@
 import json
+import logging
+import secrets
+from datetime import timedelta
+from smtplib import SMTPException
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import AgentUser
+from .models import AgentUser, RegistrationOTP
+
+
+logger = logging.getLogger(__name__)
+OTP_LIFETIME = timedelta(minutes=10)
+OTP_RESEND_DELAY = timedelta(seconds=60)
+OTP_MAX_ATTEMPTS = 5
 
 
 def home(request):
@@ -46,6 +61,38 @@ def _auth_error(request, message, status=400):
     return redirect('home')
 
 
+def _send_registration_otp(request, registration, code):
+    try:
+        sent_count = send_mail(
+            subject='Your Pathway verification code',
+            message=(
+                f'Your Pathway verification code is {code}. '
+                'It expires in 10 minutes. If you did not request this, ignore this email.'
+            ),
+            from_email=None,
+            recipient_list=[registration.email],
+            fail_silently=False,
+        )
+    except (OSError, SMTPException):
+        logger.exception('Failed to send registration OTP to %s', registration.email)
+        registration.delete()
+        return _auth_error(
+            request,
+            'We could not send the verification email. Please try again later.',
+            status=503,
+        )
+
+    if sent_count != 1:
+        logger.error('Registration OTP email was not accepted for %s', registration.email)
+        registration.delete()
+        return _auth_error(
+            request,
+            'We could not send the verification email. Please try again later.',
+            status=503,
+        )
+    return None
+
+
 def register(request):
     if request.method != 'POST':
         return render(request, 'Agent/index.html', {'initial_auth_dialog': 'register-modal'})
@@ -74,6 +121,11 @@ def register(request):
         return _auth_error(request, 'Mobile number must be 15 characters or fewer.')
     if password != confirm_password:
         return _auth_error(request, 'Passwords do not match.')
+    try:
+        User._meta.get_field('email').clean(email, None)
+    except ValidationError:
+        return _auth_error(request, 'Enter a valid email address.')
+
     if (
         User.objects.filter(email__iexact=email).exists()
         or User.objects.filter(username__iexact=email).exists()
@@ -81,29 +133,146 @@ def register(request):
     ):
         return _auth_error(request, 'An account with this email already exists.', status=409)
 
+    code = f'{secrets.randbelow(1_000_000):06d}'
+    now = timezone.now()
+    existing_registration = RegistrationOTP.objects.filter(email=email).first()
+    if (
+        existing_registration is not None
+        and now < existing_registration.last_sent_at + OTP_RESEND_DELAY
+    ):
+        return _auth_error(
+            request,
+            'A verification code was sent recently. Please wait before trying again.',
+            status=429,
+        )
+
+    registration, _ = RegistrationOTP.objects.update_or_create(
+        email=email,
+        defaults={
+            'full_name': full_name,
+            'mobile_number': mobile_number or None,
+            'password_hash': make_password(password),
+            'otp_hash': make_password(code),
+            'expires_at': now + OTP_LIFETIME,
+            'attempts': 0,
+            'last_sent_at': now,
+        },
+    )
+    delivery_error = _send_registration_otp(request, registration, code)
+    if delivery_error:
+        return delivery_error
+
+    message = 'We sent a verification code to your email address.'
+    if _json_requested(request):
+        return JsonResponse({'success': True, 'message': message, 'email': email})
+    messages.success(request, message)
+    return render(
+        request,
+        'Agent/index.html',
+        {
+            'initial_auth_dialog': 'verify-registration-modal',
+            'verification_email': email,
+        },
+    )
+
+
+def verify_registration(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST is required.'}, status=405)
+
+    data = _request_data(request)
+    if data is None:
+        return _auth_error(request, 'The submitted data is not valid JSON.')
+    email = data.get('email')
+    code = data.get('otp')
+    if not isinstance(email, str) or not isinstance(code, str):
+        return _auth_error(request, 'Enter the email address and verification code.')
+
+    email = email.strip().lower()
+    code = code.strip()
+    if len(code) != 6 or not code.isdigit():
+        return _auth_error(request, 'Enter the 6-digit verification code.')
+
     try:
         with transaction.atomic():
-            user = User.objects.create_user(username=email, email=email, password=password)
+            registration = RegistrationOTP.objects.select_for_update().get(email=email)
+            now = timezone.now()
+            if registration.expires_at <= now:
+                return _auth_error(request, 'This code has expired. Request a new code.')
+            if registration.attempts >= OTP_MAX_ATTEMPTS:
+                return _auth_error(request, 'Too many attempts. Request a new code.', status=429)
+            if not check_password(code, registration.otp_hash):
+                registration.attempts += 1
+                registration.save(update_fields=['attempts'])
+                return _auth_error(request, 'That verification code is incorrect.')
+
+            user = User.objects.create(
+                username=registration.email,
+                email=registration.email,
+                password=registration.password_hash,
+            )
             AgentUser.objects.create(
                 user=user,
-                Full_Name=full_name,
-                email=email,
-                mobile_number=mobile_number or None,
+                Full_Name=registration.full_name,
+                email=registration.email,
+                mobile_number=registration.mobile_number,
             )
+            registration.delete()
+    except RegistrationOTP.DoesNotExist:
+        return _auth_error(request, 'No pending registration was found. Please register again.', status=404)
     except IntegrityError:
         if (
             User.objects.filter(email__iexact=email).exists()
             or User.objects.filter(username__iexact=email).exists()
             or AgentUser.objects.filter(email__iexact=email).exists()
         ):
+            RegistrationOTP.objects.filter(email=email).delete()
             return _auth_error(request, 'An account with this email already exists.', status=409)
         raise
 
-    message = 'Registration successful. Please log in.'
+    message = 'Email verified. Your account has been created. You can now log in.'
     if _json_requested(request):
-        return JsonResponse({'success': True, 'message': message})
+        return JsonResponse({'success': True, 'message': message, 'email': email})
     messages.success(request, message)
     return redirect('home')
+
+
+def resend_registration_otp(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST is required.'}, status=405)
+
+    data = _request_data(request)
+    if data is None:
+        return _auth_error(request, 'The submitted data is not valid JSON.')
+    email = data.get('email')
+    if not isinstance(email, str) or not email.strip():
+        return _auth_error(request, 'Enter the email address for this registration.')
+
+    email = email.strip().lower()
+    registration = RegistrationOTP.objects.filter(email=email).first()
+    if registration is None:
+        return _auth_error(request, 'No pending registration was found. Please register again.', status=404)
+
+    now = timezone.now()
+    next_send_at = registration.last_sent_at + OTP_RESEND_DELAY
+    if now < next_send_at:
+        retry_after = int((next_send_at - now).total_seconds()) + 1
+        return JsonResponse(
+            {'success': False, 'message': f'Please wait {retry_after} seconds before requesting another code.'},
+            status=429,
+        )
+
+    code = f'{secrets.randbelow(1_000_000):06d}'
+    registration.otp_hash = make_password(code)
+    registration.expires_at = now + OTP_LIFETIME
+    registration.attempts = 0
+    registration.last_sent_at = now
+    registration.save(update_fields=['otp_hash', 'expires_at', 'attempts', 'last_sent_at'])
+    delivery_error = _send_registration_otp(request, registration, code)
+    if delivery_error:
+        return delivery_error
+
+    return JsonResponse({'success': True, 'message': 'A new verification code has been sent.'})
 
 
 def login_view(request):

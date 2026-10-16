@@ -32,6 +32,25 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 ```
 
+## Email OTP setup
+
+Registration sends a one-time verification code to the email address entered in the sign-up form. Configure the SMTP variables in `.env` before using registration:
+
+```dotenv
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-16-character-gmail-app-password
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+DEFAULT_FROM_EMAIL=Pathway <your-email@gmail.com>
+```
+
+For Gmail, enable 2-Step Verification on the sending account and create an **App Password**. Put that app password in `EMAIL_HOST_PASSWORD`; do not use your normal Gmail password. If you use another email provider, replace `EMAIL_HOST`, `EMAIL_PORT`, TLS/SSL options, and sender credentials with the provider's SMTP settings. Use either TLS or SSL according to your provider, not both.
+
+The values in `.env.example` are placeholders. Replace them with your real email settings in the ignored `.env` file, then restart Django. Never commit real SMTP credentials.
+
 Generate a unique random key for `SECRET_KEY` while the virtual environment is active:
 
 ```bash

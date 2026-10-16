@@ -70,6 +70,7 @@
 .auth-status{display:none;margin:0 0 14px!important;padding:10px 14px;border-radius:12px;background:var(--p-coral-bg);color:var(--p-coral)!important;font-size:.9rem;font-weight:500}
 .auth-status:not(:empty){display:block}
 .auth-status.success{background:var(--p-mint);color:var(--p-teal-d)!important}
+.otp-resend{padding:4px 0;border:0;background:transparent;color:var(--p-teal-d);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 
 .auth-dialog form{display:grid;gap:14px;margin:0}
 .auth-dialog .field{display:grid;gap:6px}
@@ -173,7 +174,7 @@
   </div>
   <div class="dialog-body">
     <p class="auth-status" aria-live="polite"></p>
-    <form action="{% url 'login' %}" method="post" data-json-auth>
+    <form id="login-form" action="{% url 'login' %}" method="post" data-json-auth>
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.GET.next }}">
       <div class="field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
@@ -198,7 +199,7 @@
   </div>
   <div class="dialog-body">
     <p class="auth-status" aria-live="polite"></p>
-    <form action="{% url 'register' %}" method="post" data-json-auth>
+    <form id="register-form" action="{% url 'register' %}" method="post" data-json-auth>
       {% csrf_token %}
       <div class="field"><label for="register-name">Full name</label><input id="register-name" name="full_name" type="text" maxlength="100" autocomplete="name" placeholder="Your full name" required></div>
       <div class="field-row">
@@ -215,6 +216,25 @@
       </div>
       <button class="btn" type="submit">Create account</button>
     </form>
+  </div>
+</dialog>
+
+<dialog class="auth-dialog" id="verify-registration-modal" aria-labelledby="verify-registration-title">
+  <div class="dialog-hero">
+    <div class="dialog-top">
+      <div><h2 id="verify-registration-title">Verify your email</h2><p>Enter the 6-digit code we sent to <strong id="verification-email-label"></strong>.</p></div>
+      <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+    </div>
+  </div>
+  <div class="dialog-body">
+    <p class="auth-status" aria-live="polite"></p>
+    <form id="verify-registration-form" action="{% url 'verify_registration' %}" method="post" data-json-auth>
+      {% csrf_token %}
+      <input id="verification-email" name="email" type="hidden">
+      <div class="field"><label for="verification-otp">Verification code</label><input id="verification-otp" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required></div>
+      <button class="btn" type="submit">Verify email</button>
+    </form>
+    <p style="margin-top:16px">Didn't get the email? <button class="otp-resend" type="button" data-resend-otp>Resend code</button></p>
   </div>
 </dialog>
 
@@ -300,17 +320,32 @@ document.querySelectorAll('[data-json-auth]').forEach((form) => {
         return;
       }
 
-      if (form.action === document.querySelector('#login-modal form').action) {
+      if (form.id === 'login-form') {
         window.location.assign(result.redirect_url);
         return;
       }
 
-      form.reset();
-      form.closest('dialog').close();
-      const loginDialog = document.getElementById('login-modal');
-      loginDialog.querySelector('.auth-status').textContent = result.message;
-      loginDialog.querySelector('.auth-status').classList.add('success');
-      loginDialog.showModal();
+      if (form.id === 'register-form') {
+        form.reset();
+        form.closest('dialog').close();
+        const verificationDialog = document.getElementById('verify-registration-modal');
+        verificationDialog.querySelector('#verification-email').value = result.email;
+        verificationDialog.querySelector('#verification-email-label').textContent = result.email;
+        verificationDialog.querySelector('.auth-status').textContent = result.message;
+        verificationDialog.querySelector('.auth-status').classList.add('success');
+        verificationDialog.showModal();
+        return;
+      }
+
+      if (form.id === 'verify-registration-form') {
+        form.reset();
+        form.closest('dialog').close();
+        const loginDialog = document.getElementById('login-modal');
+        loginDialog.querySelector('#login-email').value = result.email;
+        loginDialog.querySelector('.auth-status').textContent = result.message;
+        loginDialog.querySelector('.auth-status').classList.add('success');
+        loginDialog.showModal();
+      }
     } catch (error) {
       status.textContent = 'Could not connect. Check your internet and try again.';
     } finally {
@@ -320,8 +355,48 @@ document.querySelectorAll('[data-json-auth]').forEach((form) => {
   });
 });
 
+document.querySelectorAll('[data-resend-otp]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const dialog = button.closest('dialog');
+    const email = dialog.querySelector('#verification-email').value;
+    const status = dialog.querySelector('.auth-status');
+    const csrfToken = dialog.querySelector('[name=csrfmiddlewaretoken]').value;
+    button.disabled = true;
+    status.classList.remove('success');
+    status.textContent = 'Sending a new code…';
+    try {
+      const response = await fetch("{% url 'resend_registration_otp' %}", {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({email}),
+        credentials: 'same-origin'
+      });
+      const result = await response.json();
+      status.textContent = result.message || 'The request could not be completed.';
+      if (response.ok && result.success) status.classList.add('success');
+    } catch (error) {
+      status.textContent = 'Could not connect. Check your internet and try again.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+});
+
 const initialAuthDialog = document.getElementById('{{ initial_auth_dialog|default:""|escapejs }}');
-if (initialAuthDialog) initialAuthDialog.showModal();
+if (initialAuthDialog) {
+  if (initialAuthDialog.id === 'verify-registration-modal') {
+    const verificationEmail = '{{ verification_email|default:""|escapejs }}';
+    initialAuthDialog.querySelector('#verification-email').value = verificationEmail;
+    initialAuthDialog.querySelector('#verification-email-label').textContent = verificationEmail;
+    initialAuthDialog.querySelector('.auth-status').textContent = 'We sent a verification code to your email address.';
+    initialAuthDialog.querySelector('.auth-status').classList.add('success');
+  }
+  initialAuthDialog.showModal();
+}
 </script>
 </body>
 </html>
