@@ -34,6 +34,7 @@ class AuthenticationFlowTests(TestCase):
             data=json.dumps({
                 'full_name': 'Test Student',
                 'email': 'student@example.com',
+                'mobile_number': '+8801712345678',
                 'password': 'Strong-test-password-123',
                 'confirm_password': 'Strong-test-password-123',
             }),
@@ -47,6 +48,7 @@ class AuthenticationFlowTests(TestCase):
         profile = AgentUser.objects.get(user=user)
         self.assertEqual(profile.Full_Name, 'Test Student')
         self.assertEqual(profile.email, 'student@example.com')
+        self.assertEqual(profile.mobile_number, '+8801712345678')
 
     def test_json_login_authenticates_user_and_returns_dashboard_url(self):
         user = User.objects.create_user(

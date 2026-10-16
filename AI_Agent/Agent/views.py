@@ -59,14 +59,19 @@ def register(request):
         for field in ('full_name', 'email', 'password', 'confirm_password')
     ):
         return _auth_error(request, 'Please provide valid registration details.')
+    if data.get('mobile_number') is not None and not isinstance(data['mobile_number'], str):
+        return _auth_error(request, 'Please provide a valid mobile number.')
 
     full_name = data['full_name'].strip()
     email = data['email'].strip().lower()
+    mobile_number = (data.get('mobile_number') or '').strip()
     password = data.get('password', '')
     confirm_password = data.get('confirm_password', '')
 
     if not full_name or not email or not password or not confirm_password:
         return _auth_error(request, 'Please complete all registration fields.')
+    if len(mobile_number) > 15:
+        return _auth_error(request, 'Mobile number must be 15 characters or fewer.')
     if password != confirm_password:
         return _auth_error(request, 'Passwords do not match.')
     if (
@@ -79,7 +84,12 @@ def register(request):
     try:
         with transaction.atomic():
             user = User.objects.create_user(username=email, email=email, password=password)
-            AgentUser.objects.create(user=user, Full_Name=full_name, email=email)
+            AgentUser.objects.create(
+                user=user,
+                Full_Name=full_name,
+                email=email,
+                mobile_number=mobile_number or None,
+            )
     except IntegrityError:
         if (
             User.objects.filter(email__iexact=email).exists()

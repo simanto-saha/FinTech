@@ -5,23 +5,137 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{% block title %}Pathway{% endblock %} – Student finance assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 <style>
+/* ---------- Scoped design tokens (header, dialogs, footer only) ---------- */
+.site-head,.auth-dialog,.site-foot{
+  --p-ink:#0f2233; --p-mute:#5b6b79; --p-line:#e2e8ee; --p-paper:#f5f8fa; --p-card:#fff;
+  --p-teal:#0e9f8e; --p-teal-d:#0a7a6d; --p-mint:#e5f6f3; --p-coral:#d9473a; --p-coral-bg:#fdecea;
+  --p-ring:0 0 0 3px rgba(14,159,142,.28);
+  font-family:'DM Sans',system-ui,sans-serif;
+}
+
+/* ---------- Wider container ---------- */
+.wrap{box-sizing:border-box;width:100%;max-width:1360px;margin-inline:auto;padding-inline:clamp(16px,4vw,48px)}
+
+/* ---------- Header ---------- */
+.site-head{position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top,0px);
+  background:rgba(255,255,255,.82);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);
+  border-bottom:1px solid var(--p-line)}
+.site-head .nav{display:flex;align-items:center;justify-content:flex-start;gap:16px;min-height:68px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;color:var(--p-ink);text-decoration:none}
+.site-head .logo i,.site-foot .logo i{display:inline-block;width:30px;height:30px;border-radius:10px;position:relative;flex:none;
+  background:linear-gradient(135deg,#12b5a1,#0a7a6d)}
+.site-head .logo i::after,.site-foot .logo i::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:3px;border-radius:3px;background:#fff;transform:translateY(-50%) rotate(-28deg)}
+.site-head nav{margin-left:auto;display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--p-paper);border:1px solid var(--p-line)}
+.site-head nav a{padding:8px 16px;border-radius:999px;color:var(--p-mute);font-weight:500;font-size:.95rem;text-decoration:none;transition:background .15s,color .15s}
+.site-head nav a:hover{background:#fff;color:var(--p-ink);box-shadow:0 1px 3px rgba(15,34,51,.1)}
 .nav-actions{display:flex;align-items:center;gap:10px}
-.auth-dialog{width:min(92vw,460px);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:var(--r);padding:26px;background:var(--card);color:var(--ink);margin:auto}
-.auth-dialog::backdrop{background:rgba(10,25,38,.62);backdrop-filter:blur(3px)}
-.auth-dialog h2{margin-bottom:6px}
-.auth-dialog p{color:var(--mute)}
-.auth-dialog form{display:grid;gap:12px;margin-top:18px}
-.auth-dialog label{font-weight:600}
-.auth-dialog input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit}
+.nav-actions .muted{display:inline-flex;align-items:center;gap:8px;font-weight:500;color:var(--p-ink);font-size:.95rem}
+.nav-actions .muted::before{content:"";width:28px;height:28px;border-radius:50%;background:var(--p-mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a7a6d' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1-4 4-6 8-6s7 2 8 6'/%3E%3C/svg%3E") center/16px no-repeat}
+
+.site-head .btn,.auth-dialog .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border:1px solid transparent;border-radius:12px;
+  background:var(--p-teal);color:#fff;font:inherit;font-weight:700;font-size:.95rem;line-height:1.2;text-decoration:none;cursor:pointer;
+  box-shadow:0 1px 2px rgba(10,122,109,.3),0 6px 16px -6px rgba(14,159,142,.55);transition:background .15s,transform .1s,box-shadow .15s}
+.site-head .btn:hover,.auth-dialog .btn:hover{background:var(--p-teal-d)}
+.site-head .btn:active,.auth-dialog .btn:active{transform:translateY(1px)}
+.site-head .btn.ghost{background:transparent;color:var(--p-ink);border-color:var(--p-line);box-shadow:none}
+.site-head .btn.ghost:hover{background:var(--p-paper)}
+.site-head a:focus-visible,.site-head button:focus-visible,.auth-dialog :focus-visible,.site-foot a:focus-visible{outline:none;box-shadow:var(--p-ring)}
+
+/* ---------- Auth dialog ---------- */
+.auth-dialog{width:min(92vw,440px);max-height:92vh;overflow:auto;padding:0;margin:auto;border:0;border-radius:24px;
+  background:var(--p-card);color:var(--p-ink);box-shadow:0 30px 80px -20px rgba(8,22,34,.55),0 0 0 1px rgba(15,34,51,.06)}
+.auth-dialog[open]{animation:dialog-in .26s cubic-bezier(.2,.8,.2,1)}
+.auth-dialog[open]::backdrop{animation:fade-in .26s ease}
+.auth-dialog::backdrop{background:rgba(8,22,34,.58);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+@keyframes dialog-in{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+
+.dialog-hero{padding:26px 28px 20px;background:linear-gradient(160deg,var(--p-mint),#fff 70%);border-bottom:1px solid var(--p-line)}
 .dialog-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.dialog-close{border:0;background:transparent;color:var(--mute);font-size:1.6rem;line-height:1;cursor:pointer}
-.auth-status{min-height:1.5em;color:var(--coral)!important}
-.auth-status.success{color:var(--teal)!important}
-.auth-switch{border:0;padding:0;background:none;color:var(--teal-d);font:inherit;text-decoration:underline;cursor:pointer}
-@media(max-width:720px){.nav-actions{gap:6px}.nav-actions .btn{padding:9px 12px;font-size:.9rem}}
+.auth-dialog h2{margin:0 0 6px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.55rem;letter-spacing:-.02em;line-height:1.15}
+.auth-dialog p{margin:0;color:var(--p-mute);font-size:.95rem}
+.dialog-close{flex:none;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(15,34,51,.06);color:var(--p-mute);font-size:1.4rem;line-height:1;cursor:pointer;transition:background .15s,color .15s}
+.dialog-close:hover{background:rgba(15,34,51,.12);color:var(--p-ink)}
+
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:18px;padding:4px;border-radius:12px;background:rgba(15,34,51,.07)}
+.auth-tabs button{padding:9px 12px;border:0;border-radius:9px;background:transparent;color:var(--p-mute);font:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:background .15s,color .15s}
+.auth-tabs button[aria-current="true"]{background:#fff;color:var(--p-ink);box-shadow:0 1px 3px rgba(15,34,51,.15)}
+
+.dialog-body{padding:20px 28px 28px}
+.auth-status{display:none;margin:0 0 14px!important;padding:10px 14px;border-radius:12px;background:var(--p-coral-bg);color:var(--p-coral)!important;font-size:.9rem;font-weight:500}
+.auth-status:not(:empty){display:block}
+.auth-status.success{background:var(--p-mint);color:var(--p-teal-d)!important}
+
+.auth-dialog form{display:grid;gap:14px;margin:0}
+.auth-dialog .field{display:grid;gap:6px}
+.auth-dialog label{font-weight:600;font-size:.88rem;color:var(--p-ink)}
+.auth-dialog label small{font-weight:400;color:var(--p-mute)}
+.auth-dialog input{width:100%;padding:12px 14px;border:1.5px solid var(--p-line);border-radius:12px;background:var(--p-paper);color:var(--p-ink);font:inherit;font-size:.98rem;transition:border-color .15s,background .15s,box-shadow .15s}
+.auth-dialog input::placeholder{color:#97a5b1}
+.auth-dialog input:hover{border-color:#cdd7df}
+.auth-dialog input:focus{border-color:var(--p-teal);background:#fff;box-shadow:var(--p-ring);outline:none}
+.pw{position:relative}
+.pw input{padding-right:48px}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;padding:0;border:0;border-radius:10px;background:transparent;color:var(--p-mute);cursor:pointer;transition:background .15s,color .15s}
+.pw button:hover{background:var(--p-mint);color:var(--p-teal-d)}
+.pw button svg{width:20px;height:20px}
+.pw button .eye-off{display:none}
+.pw button.is-on{color:var(--p-teal-d)}
+.pw button.is-on .eye{display:none}
+.pw button.is-on .eye-off{display:block}
+.auth-dialog .btn{width:100%;padding:13px 20px;margin-top:4px;font-size:1rem}
+.auth-dialog .btn[disabled]{opacity:.7;cursor:progress}
+.auth-dialog .btn[disabled]::before{content:"";width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(min-width:520px){.auth-dialog .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+
+@media(min-width:721px){#register-modal{width:min(94vw,640px)}#register-modal .dialog-hero{padding:30px 36px 22px}#register-modal .dialog-body{padding:24px 36px 34px}}
+
+/* ---------- Footer ---------- */
+.site-foot{margin-top:64px;padding:48px 0 calc(24px + env(safe-area-inset-bottom,0px));background:#0c1c2a;color:#b9c6d1}
+.site-foot .logo{color:#fff}
+.site-foot-main{display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px}
+.site-foot-brand p{max-width:34ch;margin:12px 0 0;color:#8fa1b0;line-height:1.55}
+.site-foot-links{display:flex;flex-wrap:wrap;gap:8px 24px;align-content:flex-start}
+.site-foot-links a{color:#d5dee6;text-decoration:none;font-weight:500;padding:4px 0}
+.site-foot-links a:hover{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.site-foot-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);font-size:.9rem;color:#8fa1b0}
+.site-foot-bottom a{color:#d5dee6;text-decoration:none}
+.site-foot-bottom a:hover{color:#fff}
+
+/* ---------- Responsive ---------- */
+@media(max-width:720px){
+  .site-head .nav{flex-wrap:wrap;gap:10px;padding-top:10px;padding-bottom:10px;min-height:0}
+  .site-head nav{order:3;width:100%;justify-content:space-between;overflow-x:auto}
+  .site-head nav a{flex:1;text-align:center;padding:8px 10px;white-space:nowrap}
+  .nav-actions{gap:6px}
+  .site-head .btn{padding:9px 14px}
+  /* dialogs become bottom sheets on phones */
+  .auth-dialog{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:94vh}
+  .dialog-hero{padding:22px 20px 16px}
+  .dialog-body{padding:18px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+  @keyframes dialog-in{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+}
+@media(max-width:720px){
+  .nav-actions .muted{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .auth-dialog input{font-size:16px;padding:13px 14px}
+  .auth-dialog .field-row{display:grid;gap:14px}
+  .dialog-close{width:40px;height:40px}
+  .auth-tabs button{padding:11px 12px}
+  .site-foot{padding-top:36px;margin-top:40px}
+  .site-foot-main{flex-direction:column;gap:22px}
+  .site-foot-bottom{flex-direction:column;gap:8px;margin-top:28px}
+}
+@media(max-width:380px){
+  .site-head .logo{font-size:1.15rem}
+  .site-head .btn{padding:8px 11px;font-size:.88rem}
+}
+@media(prefers-reduced-motion:reduce){.auth-dialog[open],.auth-dialog[open]::backdrop,.btn[disabled]::before{animation:none}}
 </style>
 {% block head %}{% endblock %}
 </head>
@@ -40,49 +154,87 @@
         <a class="btn ghost" href="{% url 'logout' %}">Log out</a>
       {% else %}
         <button class="btn ghost" type="button" data-open-modal="login-modal">Log in</button>
-        <button class="btn" type="button" data-open-modal="register-modal">Registration</button>
+        <button class="btn" type="button" data-open-modal="register-modal">Sign up</button>
       {% endif %}
     </div>
   </div>
 </header>
 
 <dialog class="auth-dialog" id="login-modal" aria-labelledby="login-title">
-  <div class="dialog-top">
-    <div><h2 id="login-title">Welcome back</h2><p>Log in to your Pathway account.</p></div>
-    <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+  <div class="dialog-hero">
+    <div class="dialog-top">
+      <div><h2 id="login-title">Welcome back</h2><p>Log in to pick up where you left off.</p></div>
+      <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="auth-tabs" role="group" aria-label="Account">
+      <button type="button" aria-current="true">Log in</button>
+      <button type="button" data-open-modal="register-modal">Sign up</button>
+    </div>
   </div>
-  <p class="auth-status" aria-live="polite"></p>
-  <form action="{% url 'login' %}" method="post" data-json-auth>
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.GET.next }}">
-    <div><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="email" required></div>
-    <div><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required></div>
-    <button class="btn" type="submit">Log in</button>
-  </form>
-  <p>New to Pathway? <button class="auth-switch" type="button" data-open-modal="register-modal">Create an account</button></p>
+  <div class="dialog-body">
+    <p class="auth-status" aria-live="polite"></p>
+    <form action="{% url 'login' %}" method="post" data-json-auth>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      <div class="field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+      <div class="field"><label for="login-password">Password</label>
+        <div class="pw"><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button type="button" data-toggle-pw aria-label="Show password" aria-pressed="false"><svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.5 10.5 0 0 1 12 19C5.6 19 2 12 2 12a18 18 0 0 1 4.1-5M9.9 5.2A9.8 9.8 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-2.2 3.2M1 1l22 22"/><path d="M14.1 14.1a3 3 0 0 1-4.2-4.2"/></svg></button></div>
+      </div>
+      <button class="btn" type="submit">Log in</button>
+    </form>
+  </div>
 </dialog>
 
 <dialog class="auth-dialog" id="register-modal" aria-labelledby="register-title">
-  <div class="dialog-top">
-    <div><h2 id="register-title">Create your account</h2><p>Enter your details to register.</p></div>
-    <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+  <div class="dialog-hero">
+    <div class="dialog-top">
+      <div><h2 id="register-title">Create your account</h2><p>It takes less than a minute.</p></div>
+      <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="auth-tabs" role="group" aria-label="Account">
+      <button type="button" data-open-modal="login-modal">Log in</button>
+      <button type="button" aria-current="true">Sign up</button>
+    </div>
   </div>
-  <p class="auth-status" aria-live="polite"></p>
-  <form action="{% url 'register' %}" method="post" data-json-auth>
-    {% csrf_token %}
-    <div><label for="register-name">Full name</label><input id="register-name" name="full_name" type="text" maxlength="100" autocomplete="name" required></div>
-    <div><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" required></div>
-    <div><label for="register-password">Password</label><input id="register-password" name="password" type="password" autocomplete="new-password" required></div>
-    <div><label for="register-confirm-password">Confirm password</label><input id="register-confirm-password" name="confirm_password" type="password" autocomplete="new-password" required></div>
-    <button class="btn" type="submit">Create account</button>
-  </form>
-  <p>Already registered? <button class="auth-switch" type="button" data-open-modal="login-modal">Log in</button></p>
+  <div class="dialog-body">
+    <p class="auth-status" aria-live="polite"></p>
+    <form action="{% url 'register' %}" method="post" data-json-auth>
+      {% csrf_token %}
+      <div class="field"><label for="register-name">Full name</label><input id="register-name" name="full_name" type="text" maxlength="100" autocomplete="name" placeholder="Your full name" required></div>
+      <div class="field-row">
+        <div class="field"><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <div class="field"><label for="register-mobile">Mobile <small>(optional)</small></label><input id="register-mobile" name="mobile_number" type="tel" maxlength="15" autocomplete="tel" placeholder="+880 1XXXXXXXXX"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="register-password">Password</label>
+          <div class="pw"><input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Create a password" required><button type="button" data-toggle-pw aria-label="Show password" aria-pressed="false"><svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.5 10.5 0 0 1 12 19C5.6 19 2 12 2 12a18 18 0 0 1 4.1-5M9.9 5.2A9.8 9.8 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-2.2 3.2M1 1l22 22"/><path d="M14.1 14.1a3 3 0 0 1-4.2-4.2"/></svg></button></div>
+        </div>
+        <div class="field"><label for="register-confirm-password">Confirm password</label>
+          <div class="pw"><input id="register-confirm-password" name="confirm_password" type="password" autocomplete="new-password" placeholder="Repeat password" required><button type="button" data-toggle-pw aria-label="Show password" aria-pressed="false"><svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.5 10.5 0 0 1 12 19C5.6 19 2 12 2 12a18 18 0 0 1 4.1-5M9.9 5.2A9.8 9.8 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-2.2 3.2M1 1l22 22"/><path d="M14.1 14.1a3 3 0 0 1-4.2-4.2"/></svg></button></div>
+        </div>
+      </div>
+      <button class="btn" type="submit">Create account</button>
+    </form>
+  </div>
 </dialog>
 
 {% block content %}{% endblock %}
 
 <footer class="site-foot">
-  <div class="wrap"><span>© 2026 Pathway. Not a bank. Payments are handled by licensed partners.</span><span>Privacy · Terms · Help</span></div>
+  <div class="wrap">
+    <div class="site-foot-main">
+      <div class="site-foot-brand">
+        <a class="logo" href="{% url 'home' %}"><i></i>Pathway</a>
+        <p>A clearer path to managing your money while studying abroad.</p>
+      </div>
+      <nav class="site-foot-links" aria-label="Footer navigation">
+        <a href="{% url 'home' %}#features">Features</a>
+        <a href="{% url 'home' %}#how">How it works</a>
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+      </nav>
+    </div>
+    <div class="site-foot-bottom"><span>Your next step starts here.</span><a href="{% url 'home' %}" aria-label="Back to top">Back to top ↑</a></div>
+  </div>
 </footer>
 {% block scripts %}{% endblock %}
 <script>
@@ -99,14 +251,37 @@ document.querySelectorAll('.auth-dialog .dialog-close').forEach((button) => {
   button.addEventListener('click', () => button.closest('dialog').close());
 });
 
+// Close when clicking the dimmed backdrop
+document.querySelectorAll('.auth-dialog').forEach((dialog) => {
+  dialog.addEventListener('mousedown', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+});
+
+// Show / hide password
+document.querySelectorAll('[data-toggle-pw]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const input = button.parentElement.querySelector('input');
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    button.classList.toggle('is-on', show);
+    button.setAttribute('aria-pressed', show);
+    button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  });
+});
+
 document.querySelectorAll('[data-json-auth]').forEach((form) => {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const status = form.closest('dialog').querySelector('.auth-status');
+    const submit = form.querySelector('[type=submit]');
+    const label = submit.textContent;
     const values = Object.fromEntries(new FormData(form).entries());
     const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-    status.textContent = 'Please wait…';
+    status.textContent = '';
     status.classList.remove('success');
+    submit.disabled = true;
+    submit.textContent = 'Please wait…';
 
     try {
       const response = await fetch(form.action, {
@@ -137,7 +312,10 @@ document.querySelectorAll('[data-json-auth]').forEach((form) => {
       loginDialog.querySelector('.auth-status').classList.add('success');
       loginDialog.showModal();
     } catch (error) {
-      status.textContent = 'Could not connect. Please try again.';
+      status.textContent = 'Could not connect. Check your internet and try again.';
+    } finally {
+      submit.disabled = false;
+      submit.textContent = label;
     }
   });
 });
