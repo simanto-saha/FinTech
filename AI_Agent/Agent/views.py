@@ -4,44 +4,100 @@ import secrets
 from datetime import timedelta
 from smtplib import SMTPException
 
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import urlencode
+from hashids import Hashids
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import AgentUser, AiAgentQuestion, RegistrationOTP
+from .models import AgentUser, AiAgentConversation, AiAgentQuestion, RegistrationOTP
 
 
 logger = logging.getLogger(__name__)
 OTP_LIFETIME = timedelta(minutes=10)
 OTP_RESEND_DELAY = timedelta(seconds=60)
 OTP_MAX_ATTEMPTS = 5
+CONVERSATION_ID_HASH = Hashids(salt=settings.SECRET_KEY, min_length=8)
+
+
+def _conversation_token(conversation_id):
+    return CONVERSATION_ID_HASH.encode(conversation_id)
+
+
+def _conversation_url(conversation_id):
+    token = _conversation_token(conversation_id)
+    return f"{reverse('dashboard')}?{urlencode({'conversation_id': token})}"
+
+
+def _conversation_pk_from_token(token):
+    if not isinstance(token, str):
+        raise Http404
+    if token.isdecimal():
+        return int(token)
+    decoded_ids = CONVERSATION_ID_HASH.decode(token)
+    if len(decoded_ids) != 1:
+        raise Http404
+    return decoded_ids[0]
 
 
 def home(request):
-    return render(request, 'Agent/index.html')
+    context = {}
+    if request.user.is_authenticated:
+        conversations = list(AiAgentConversation.objects.filter(user=request.user)[:30])
+        for item in conversations:
+            item.token = _conversation_token(item.pk)
+            item.url = _conversation_url(item.pk)
+        context = {
+            'agent_user': AgentUser.objects.get(user=request.user),
+            'conversation': None,
+            'conversations': conversations,
+        }
+    return render(request, 'Agent/index.html', context)
 
 
 @login_required(login_url='login')
 def dashboard(request):
     agent_user = AgentUser.objects.get(user=request.user)
-    questions = list(
-        AiAgentQuestion.objects.filter(user=request.user).order_by('-created_at')[:20]
+    conversation = None
+    conversation_token = request.GET.get('conversation_id')
+    if conversation_token:
+        conversation = get_object_or_404(
+            AiAgentConversation,
+            pk=_conversation_pk_from_token(conversation_token),
+            user=request.user,
+        )
+
+    questions = (
+        list(conversation.questions.order_by('created_at', 'pk'))
+        if conversation
+        else []
     )
-    questions.reverse()
+    conversations = list(AiAgentConversation.objects.filter(user=request.user)[:30])
+    for item in conversations:
+        item.token = _conversation_token(item.pk)
+        item.url = _conversation_url(item.pk)
     return render(
         request,
         'Agent/dashboard.html',
-        {'agent_user': agent_user, 'questions': questions},
+        {
+            'agent_user': agent_user,
+            'questions': questions,
+            'conversation': conversation,
+            'conversation_token': _conversation_token(conversation.pk) if conversation else '',
+            'conversations': conversations,
+        },
     )
 
 # This is AI Agent Question Submission View
@@ -60,6 +116,7 @@ def submit_ai_question(request):
             status=400,
         )
 
+    # Questions are here
     question_text = data.get('question_text')
     if not isinstance(question_text, str):
         return JsonResponse(
@@ -79,13 +136,50 @@ def submit_ai_question(request):
             status=400,
         )
 
-    question = AiAgentQuestion.objects.create(
-        user=request.user,
-        question_text=question_text,
-    )
+    conversation_id = data.get('conversation_id')
+    with transaction.atomic():
+        if conversation_id is None:
+            conversation = AiAgentConversation.objects.create(
+                user=request.user,
+                title=question_text[:120],
+            )
+        elif isinstance(conversation_id, (int, str)) and not isinstance(conversation_id, bool):
+            if isinstance(conversation_id, str):
+                try:
+                    conversation_pk = _conversation_pk_from_token(conversation_id)
+                except Http404:
+                    return JsonResponse(
+                        {'success': False, 'message': 'The selected conversation is not valid.'},
+                        status=400,
+                    )
+            else:
+                conversation_pk = conversation_id
+            conversation = get_object_or_404(
+                AiAgentConversation,
+                pk=conversation_pk,
+                user=request.user,
+            )
+        else:
+            return JsonResponse(
+                {'success': False, 'message': 'The selected conversation is not valid.'},
+                status=400,
+            )
+
+        conversation.save(update_fields=['updated_at'])
+        question = AiAgentQuestion.objects.create(
+            user=request.user,
+            conversation=conversation,
+            question_text=question_text,
+        )
+
     return JsonResponse(
         {
             'success': True,
+            'conversation': {
+                'id': _conversation_token(conversation.pk),
+                'title': conversation.title,
+                'url': _conversation_url(conversation.pk),
+            },
             'question': {
                 'id': question.pk,
                 'question_text': question.question_text,
@@ -95,6 +189,114 @@ def submit_ai_question(request):
         },
         status=201,
     )
+
+
+@login_required(login_url='login')
+def update_profile(request):
+    if request.method != 'POST':
+        return JsonResponse(
+            {'success': False, 'message': 'POST is required.'},
+            status=405,
+        )
+
+    data = _request_data(request)
+    if data is None:
+        return JsonResponse(
+            {'success': False, 'message': 'The submitted data is not valid JSON.'},
+            status=400,
+        )
+
+    full_name = data.get('full_name')
+    mobile_number = data.get('mobile_number', '')
+    if not isinstance(full_name, str) or not isinstance(mobile_number, str):
+        return JsonResponse(
+            {'success': False, 'message': 'Please provide valid profile details.'},
+            status=400,
+        )
+
+    full_name = full_name.strip()
+    mobile_number = mobile_number.strip()
+    if not full_name:
+        return JsonResponse(
+            {'success': False, 'message': 'Full name is required.'},
+            status=400,
+        )
+    if len(full_name) > 100:
+        return JsonResponse(
+            {'success': False, 'message': 'Full name must be 100 characters or fewer.'},
+            status=400,
+        )
+    if len(mobile_number) > 15:
+        return JsonResponse(
+            {'success': False, 'message': 'Mobile number must be 15 characters or fewer.'},
+            status=400,
+        )
+
+    profile = get_object_or_404(AgentUser, user=request.user)
+    profile.Full_Name = full_name
+    profile.mobile_number = mobile_number or None
+    profile.save(update_fields=['Full_Name', 'mobile_number'])
+    return JsonResponse({
+        'success': True,
+        'message': 'Your profile has been updated.',
+        'profile': {
+            'full_name': profile.Full_Name,
+            'email': request.user.email,
+            'mobile_number': profile.mobile_number or '',
+        },
+    })
+
+
+@login_required(login_url='login')
+def change_password(request):
+    if request.method != 'POST':
+        return JsonResponse(
+            {'success': False, 'message': 'POST is required.'},
+            status=405,
+        )
+
+    data = _request_data(request)
+    if data is None:
+        return JsonResponse(
+            {'success': False, 'message': 'The submitted data is not valid JSON.'},
+            status=400,
+        )
+
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    confirm_password = data.get('confirm_password')
+    if not all(isinstance(value, str) for value in (
+        current_password,
+        new_password,
+        confirm_password,
+    )):
+        return JsonResponse(
+            {'success': False, 'message': 'Please complete all password fields.'},
+            status=400,
+        )
+    if not request.user.check_password(current_password):
+        return JsonResponse(
+            {'success': False, 'message': 'Your current password is incorrect.'},
+            status=400,
+        )
+    if new_password != confirm_password:
+        return JsonResponse(
+            {'success': False, 'message': 'The new passwords do not match.'},
+            status=400,
+        )
+
+    try:
+        validate_password(new_password, user=request.user)
+    except ValidationError as error:
+        return JsonResponse(
+            {'success': False, 'message': ' '.join(error.messages)},
+            status=400,
+        )
+
+    request.user.set_password(new_password)
+    request.user.save(update_fields=['password'])
+    update_session_auth_hash(request, request.user)
+    return JsonResponse({'success': True, 'message': 'Your password has been changed.'})
 
 
 def _request_data(request):

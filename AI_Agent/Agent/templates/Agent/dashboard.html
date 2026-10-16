@@ -118,12 +118,12 @@
 @media(prefers-reduced-motion:reduce){.skeleton{animation:none}}
 </style>{% endblock %}
 {% block content %}
-<main class="dash" id="dash">
+<main class="dash" id="dash" data-conversation-id="{{ conversation_token }}">
   <div class="modes" role="tablist" aria-label="Mode">
     <div>
       <button type="button" role="tab" id="tab-chat" aria-selected="true" aria-controls="panel-chat">Chat</button>
       <button type="button" role="tab" id="tab-reminder" aria-selected="false" aria-controls="panel-reminder" tabindex="-1">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Reminder
+        Plan
       </button>
     </div>
   </div>
@@ -213,8 +213,34 @@ tabs.forEach((tab, i) => {
 const questionForm = document.getElementById('assistant-question-form');
 const thread = document.getElementById('assistant-history');
 const dash = document.getElementById('dash');
+let activeConversationId = dash.dataset.conversationId || null;
 const syncChatState = () => dash.classList.toggle('has-chat', thread.children.length > 0);
 const scrollThread = () => { if (thread && thread.children.length) window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'}); };
+function addConversationToSidebar(conversation) {
+  const history = document.getElementById('sidebar-chat-history');
+  const newChatLink = document.getElementById('new-chat-link');
+  let link = history?.querySelector(`[data-conversation-id="${conversation.id}"]`);
+  if (history && !link) {
+    const item = document.createElement('li');
+    link = document.createElement('a');
+    link.className = 'sidebar-link';
+    link.href = conversation.url;
+    link.title = conversation.title;
+    link.dataset.conversationId = conversation.id;
+    link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l-2 2v-7.5A7.5 7.5 0 0 1 10.5 6H12"/><path d="M15 4h6m-3-3v6"/></svg>';
+    const title = document.createElement('span');
+    title.textContent = conversation.title;
+    link.append(title);
+    item.append(link);
+    history.prepend(item);
+  }
+  document.querySelectorAll('#sidebar-chat-history .sidebar-link, #new-chat-link').forEach((item) => {
+    const active = item === link;
+    item.classList.toggle('active', active);
+    if (active) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  });
+}
 syncChatState();
 scrollThread();
 
@@ -252,7 +278,10 @@ if (questionForm) {
           'Content-Type': 'application/json',
           'X-CSRFToken': questionForm.querySelector('[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({question_text: questionText}),
+        body: JSON.stringify({
+          question_text: questionText,
+          conversation_id: activeConversationId
+        }),
         credentials: 'same-origin'
       });
       const result = await response.json();
@@ -261,6 +290,10 @@ if (questionForm) {
         return;
       }
 
+      activeConversationId = String(result.conversation.id);
+      dash.dataset.conversationId = activeConversationId;
+      window.history.replaceState({}, '', result.conversation.url);
+      addConversationToSidebar(result.conversation);
       const message = document.createElement('div');
       message.className = 'assistant-message user';
       message.textContent = result.question.question_text;
@@ -459,18 +492,84 @@ function buildDots() {
     const dot = document.createElement('button');
     dot.type = 'button';
     dot.setAttribute('aria-label', `Go to slide ${p + 1}`);
-    dot.addEventListener('click', () => fxTrack.scrollTo({left: max * p / (pages - 1)}));
+    dot.addEventListener('click', () => {
+      resetAutoSlide();
+      fxTrack.scrollTo({left: max * p / (pages - 1)});
+    });
     fxDots.append(dot);
   }
 }
-fxPrev.addEventListener('click', () => fxTrack.scrollBy({left: -slideStep()}));
-fxNext.addEventListener('click', () => fxTrack.scrollBy({left: slideStep()}));
+const autoSlideMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
+const sliderRegion = fxTrack.closest('.fx-wrap');
+let autoSlideTimer;
+let pointerOverSlider = false;
+let sliderHasFocus = false;
+function stopAutoSlide() {
+  window.clearInterval(autoSlideTimer);
+  autoSlideTimer = undefined;
+}
+function startAutoSlide() {
+  stopAutoSlide();
+  if (
+    autoSlideMedia.matches
+    || document.hidden
+    || pointerOverSlider
+    || sliderHasFocus
+    || fxTrack.scrollWidth <= fxTrack.clientWidth
+  ) return;
+  autoSlideTimer = window.setInterval(() => {
+    const max = fxTrack.scrollWidth - fxTrack.clientWidth;
+    const nextLeft = fxTrack.scrollLeft + slideStep();
+    fxTrack.scrollTo({
+      left: nextLeft >= max - 2 ? 0 : nextLeft,
+      behavior: autoSlideMedia.matches ? 'auto' : 'smooth'
+    });
+  }, 4500);
+}
+function resetAutoSlide() {
+  stopAutoSlide();
+  startAutoSlide();
+}
+fxPrev.addEventListener('click', () => {
+  resetAutoSlide();
+  fxTrack.scrollBy({left: -slideStep()});
+});
+fxNext.addEventListener('click', () => {
+  resetAutoSlide();
+  fxTrack.scrollBy({left: slideStep()});
+});
 fxTrack.addEventListener('scroll', updateSlider, {passive: true});
 fxTrack.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') { e.preventDefault(); fxNext.click(); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); fxPrev.click(); }
 });
-window.addEventListener('resize', () => { buildDots(); updateSlider(); });
+sliderRegion.addEventListener('pointerenter', () => {
+  pointerOverSlider = true;
+  stopAutoSlide();
+});
+sliderRegion.addEventListener('pointerleave', () => {
+  pointerOverSlider = false;
+  startAutoSlide();
+});
+sliderRegion.addEventListener('focusin', () => {
+  sliderHasFocus = true;
+  stopAutoSlide();
+});
+sliderRegion.addEventListener('focusout', (event) => {
+  if (!sliderRegion.contains(event.relatedTarget)) {
+    sliderHasFocus = false;
+    startAutoSlide();
+  }
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopAutoSlide();
+  else startAutoSlide();
+});
+autoSlideMedia.addEventListener('change', () => {
+  if (autoSlideMedia.matches) stopAutoSlide();
+  else startAutoSlide();
+});
+window.addEventListener('resize', () => { buildDots(); updateSlider(); startAutoSlide(); });
 
 async function initFx() {
   try {
@@ -480,6 +579,7 @@ async function initFx() {
     document.getElementById('fx-src').textContent = `Daily rates · updated ${fmtDate(data.dates[data.dates.length - 1])}`;
     buildDots();
     updateSlider();
+    startAutoSlide();
   } catch (error) {
     fxTrack.innerHTML = '<div class="fx-msg"><p>Could not load live exchange rates. Check your connection and try again.</p><button type="button" id="fx-retry">Try again</button></div>';
     document.getElementById('fx-retry').addEventListener('click', () => {

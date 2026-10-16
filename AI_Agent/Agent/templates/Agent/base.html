@@ -30,7 +30,7 @@
 .site-head .logo i,.site-foot .logo i{display:inline-block;width:30px;height:30px;border-radius:10px;position:relative;flex:none;
   background:linear-gradient(135deg,#12b5a1,#0a7a6d)}
 .site-head .logo i::after,.site-foot .logo i::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:3px;border-radius:3px;background:#fff;transform:translateY(-50%) rotate(-28deg)}
-.site-head nav{margin-left:auto;display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--p-paper);border:1px solid var(--p-line)}
+.site-head nav{margin-left:auto;display:flex;gap:8px;padding:0;border:0;background:transparent}
 .site-head nav a{padding:8px 16px;border-radius:999px;color:var(--p-mute);font-weight:500;font-size:.95rem;text-decoration:none;transition:background .15s,color .15s}
 .site-head nav a:hover{background:#fff;color:var(--p-ink);box-shadow:0 1px 3px rgba(15,34,51,.1)}
 .nav-actions{display:flex;align-items:center;gap:10px}
@@ -47,8 +47,14 @@
 .site-head a:focus-visible,.site-head button:focus-visible,.auth-dialog :focus-visible,.site-foot a:focus-visible{outline:none;box-shadow:var(--p-ring)}
 
 /* ---------- Signed-in application sidebar ---------- */
-.app-sidebar{position:fixed;inset:0 auto 0 0;z-index:60;display:flex;width:264px;flex-direction:column;padding:16px 12px;
+.authenticated{--sidebar-width:264px}
+.app-sidebar{position:fixed;inset:0 auto 0 0;z-index:60;display:flex;width:var(--sidebar-width);flex-direction:column;padding:16px 12px;
   background:#f7f9fa;border-right:1px solid #e2e8ee;color:#17212b;transition:width .2s ease}
+.sidebar-resizing .app-sidebar,.sidebar-resizing #page-content{transition:none;user-select:none}
+.sidebar-resize-handle{position:absolute;inset:0 -5px 0 auto;z-index:2;width:10px;touch-action:none;cursor:ew-resize}
+.sidebar-resize-handle::after{position:absolute;inset:0 4px;width:2px;background:transparent;content:"";transition:background .15s}
+.sidebar-resize-handle:hover::after,.sidebar-resize-handle:focus-visible::after,.sidebar-resizing .sidebar-resize-handle::after{background:#0e9f8e}
+.sidebar-resize-handle:focus-visible{outline:none}
 .sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 22px}
 .sidebar-brand{display:flex;align-items:center;gap:10px;overflow:hidden;white-space:nowrap;font-family:'Bricolage Grotesque',sans-serif;font-size:1.2rem;font-weight:800;color:#17212b}
 .sidebar-brand i{display:inline-block;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#12b5a1,#0a7a6d);position:relative;flex:none}
@@ -59,48 +65,90 @@
 .sidebar-nav{display:grid;gap:5px}
 .sidebar-link,.sidebar-logout{display:flex;min-height:44px;align-items:center;gap:13px;padding:10px 12px;border:0;border-radius:11px;background:transparent;color:#43515e;text-align:left;text-decoration:none;font:500 .95rem 'DM Sans',sans-serif;white-space:nowrap;cursor:pointer}
 .sidebar-link svg,.sidebar-logout svg{width:20px;height:20px;flex:none}
-.sidebar-link.active{background:#e5f6f3;color:#0a7a6d;font-weight:700}
+.sidebar-link.active{background:#e5f6f3;color:#0a7a6d;font-weight:700;box-shadow:0 0 0 1px rgba(14,159,142,.12),0 0 14px rgba(14,159,142,.2);animation:sidebar-glow 2s ease-in-out infinite alternate}
+@keyframes sidebar-glow{from{box-shadow:0 0 0 1px rgba(14,159,142,.1),0 0 8px rgba(14,159,142,.12)}to{box-shadow:0 0 0 1px rgba(14,159,142,.2),0 0 16px rgba(14,159,142,.26)}}
+.sidebar-history{width:100%;min-width:0;min-height:0;max-height:42vh;margin-top:16px;overflow-y:auto;overflow-x:hidden}
+.sidebar-section-title{margin:0;padding:0 12px 7px;color:#71808c;font-size:.76rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.sidebar-history-list{display:grid;width:100%;min-width:0;gap:3px;margin:0;padding:0;list-style:none}
+.sidebar-history-list li{min-width:0}
+.sidebar-history-list .sidebar-link{box-sizing:border-box;width:100%;min-width:0;min-height:40px;overflow:hidden}
+.sidebar-history-list .sidebar-link span{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sidebar-spacer{flex:1}
 .sidebar-account{display:flex;align-items:center;gap:10px;padding:12px 5px 2px;border-top:1px solid #e2e8ee}
+.sidebar-account-menu{position:relative;min-width:0;flex:1}
+.sidebar-account-trigger{display:flex;width:100%;align-items:center;gap:10px;padding:4px;border:0;border-radius:12px;background:transparent;text-align:left;cursor:pointer}
+.sidebar-account-trigger:hover,.sidebar-account-trigger[aria-expanded="true"]{background:#e9eef1}
 .sidebar-avatar{display:grid;width:36px;height:36px;place-items:center;flex:none;border-radius:50%;background:#e5f6f3;color:#0a7a6d;font-weight:700}
 .sidebar-identity{min-width:0;flex:1}
 .sidebar-identity strong,.sidebar-identity span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sidebar-identity strong{font-size:.88rem;color:#17212b}
 .sidebar-identity span{font-size:.76rem;color:#71808c}
-.sidebar-logout{width:40px;min-height:40px;justify-content:center;padding:8px}
+.sidebar-account-chevron{width:16px;height:16px;flex:none;color:#71808c;transition:transform .15s}
+.sidebar-account-trigger[aria-expanded="true"] .sidebar-account-chevron{transform:rotate(180deg)}
+.account-menu{position:absolute;bottom:calc(100% + 10px);left:0;z-index:5;display:grid;width:232px;gap:3px;padding:7px;border:1px solid #e2e8ee;border-radius:15px;background:#fff;box-shadow:0 12px 36px rgba(15,34,51,.16)}
+.account-menu[hidden]{display:none}
+.account-menu a,.account-menu button{display:flex;min-height:40px;align-items:center;gap:10px;padding:9px 11px;border:0;border-radius:9px;background:transparent;color:#344453;text-align:left;text-decoration:none;font:500 .9rem 'DM Sans',sans-serif;cursor:pointer}
+.account-menu a:hover,.account-menu button:hover{background:#eef5f4;color:#0a7a6d}
+.account-menu svg{width:18px;height:18px;flex:none}
+.account-menu-divider{height:1px;margin:4px 5px;background:#e2e8ee}
 .sidebar-scrim{display:none}
-.authenticated #page-content{min-height:calc(100vh - 32px);margin-left:264px;transition:margin-left .2s ease}
+.authenticated #page-content{min-height:calc(100vh - 32px);margin-left:var(--sidebar-width,264px);transition:margin-left .2s ease}
 .authenticated .site-foot{display:none}
 .sidebar-collapsed .app-sidebar{width:76px}
 .sidebar-collapsed .sidebar-top{flex-direction:column-reverse;justify-content:center;padding-bottom:22px}
 .sidebar-collapsed .sidebar-brand{width:38px;height:38px;justify-content:center}
 .sidebar-collapsed .sidebar-brand span,.sidebar-collapsed .sidebar-link span,.sidebar-collapsed .sidebar-identity{display:none}
 .sidebar-collapsed .sidebar-link,.sidebar-collapsed .sidebar-logout{justify-content:center;padding-inline:8px}
+.sidebar-collapsed .sidebar-section-title{display:none}
+.sidebar-collapsed .sidebar-history{margin-top:10px;padding-top:10px;border-top:1px solid #e2e8ee;overflow-y:auto;scrollbar-width:none}
+.sidebar-collapsed .sidebar-history::-webkit-scrollbar{display:none}
+.sidebar-collapsed .sidebar-history-list{gap:6px}
+.sidebar-collapsed .sidebar-history-list .sidebar-link{width:44px;height:44px;min-height:44px;margin-inline:auto;padding:0;border-radius:12px}
+.sidebar-collapsed .sidebar-history-list .sidebar-link:hover{background:#e9eef1;color:#0a7a6d}
+.sidebar-collapsed .sidebar-history-list .sidebar-link.active{background:#e5f6f3;color:#0a7a6d}
 .sidebar-collapsed .sidebar-account{justify-content:center;padding-inline:0}
-.sidebar-collapsed .sidebar-logout{width:36px}
+.sidebar-collapsed .sidebar-account-menu{flex:none}
+.sidebar-collapsed .sidebar-account-trigger{justify-content:center;padding:0}
+.sidebar-collapsed .sidebar-account-chevron{display:none}
+.sidebar-collapsed .account-menu{left:48px;bottom:0}
 .sidebar-collapsed .sidebar-toggle svg{transform:rotate(180deg)}
 .sidebar-collapsed #page-content{margin-left:76px}
 @media(max-width:720px){
   .app-sidebar{width:76px}
   .sidebar-top{flex-direction:column-reverse;justify-content:center;padding-bottom:22px}
   .sidebar-brand{width:38px;height:38px;justify-content:center}
-  .sidebar-brand span,.sidebar-link span,.sidebar-identity{display:none}
+  .sidebar-brand span,.sidebar-link span,.sidebar-identity,.sidebar-section-title{display:none}
   .sidebar-link,.sidebar-logout{justify-content:center;padding-inline:8px}
+  .sidebar-history{margin-top:10px;padding-top:10px;border-top:1px solid #e2e8ee;overflow-y:auto;scrollbar-width:none}
+  .sidebar-history::-webkit-scrollbar{display:none}
+  .sidebar-history-list{gap:6px}
+  .sidebar-history-list .sidebar-link{width:44px;height:44px;min-height:44px;margin-inline:auto;padding:0;border-radius:12px}
+  .sidebar-history-list .sidebar-link:hover{background:#e9eef1;color:#0a7a6d}
   .sidebar-account{justify-content:center;padding-inline:0}
-  .sidebar-logout{width:36px}
+  .sidebar-account-menu{flex:none}
+  .sidebar-account-trigger{justify-content:center;padding:0}
+  .sidebar-account-chevron{display:none}
+  .account-menu{left:48px;bottom:0}
   .sidebar-toggle svg{transform:rotate(180deg)}
   .authenticated #page-content,.sidebar-collapsed #page-content{margin-left:76px}
-  .sidebar-expanded .app-sidebar{width:min(82vw,280px);box-shadow:16px 0 45px rgba(15,34,51,.16)}
+  .sidebar-expanded .app-sidebar{--sidebar-width:min(82vw,280px);width:min(82vw,280px);box-shadow:16px 0 45px rgba(15,34,51,.16)}
+  .sidebar-resize-handle{display:none}
   .sidebar-expanded .sidebar-top{flex-direction:row;justify-content:space-between}
   .sidebar-expanded .sidebar-brand{width:auto;justify-content:flex-start}
   .sidebar-expanded .sidebar-brand span,.sidebar-expanded .sidebar-link span,.sidebar-expanded .sidebar-identity{display:block}
+  .sidebar-expanded .sidebar-section-title{display:block}
   .sidebar-expanded .sidebar-link{justify-content:flex-start}
+  .sidebar-expanded .sidebar-history{margin-top:16px;padding-top:0;border-top:0}
+  .sidebar-expanded .sidebar-history-list .sidebar-link{width:100%;height:auto;min-height:40px;margin:0;padding:10px 12px;border-radius:11px}
   .sidebar-expanded .sidebar-account{justify-content:initial;padding-inline:5px}
-  .sidebar-expanded .sidebar-logout{width:40px}
+  .sidebar-expanded .sidebar-account-menu{flex:1}
+  .sidebar-expanded .sidebar-account-trigger{justify-content:flex-start;padding:4px}
+  .sidebar-expanded .sidebar-account-chevron{display:block}
+  .sidebar-expanded .account-menu{left:0;bottom:calc(100% + 10px)}
   .sidebar-expanded .sidebar-toggle svg{transform:none}
   .sidebar-expanded .sidebar-scrim{position:fixed;inset:0 0 0 76px;z-index:-1;display:block;border:0;background:rgba(15,34,51,.18)}
 }
-@media(prefers-reduced-motion:reduce){.app-sidebar,.authenticated #page-content,.sidebar-toggle svg{transition:none}}
+@media(prefers-reduced-motion:reduce){.app-sidebar,.authenticated #page-content,.sidebar-toggle svg{transition:none}.sidebar-link.active{animation:none}}
 
 /* ---------- Auth dialog ---------- */
 .auth-dialog{width:min(92vw,440px);max-height:92vh;overflow:auto;padding:0;margin:auto;border:0;border-radius:24px;
@@ -152,6 +200,19 @@
 @media(min-width:520px){.auth-dialog .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
 
 @media(min-width:721px){#register-modal{width:min(94vw,640px)}#register-modal .dialog-hero{padding:30px 36px 22px}#register-modal .dialog-body{padding:24px 36px 34px}}
+#profile-modal{width:min(94vw,820px);max-height:90vh}
+#profile-modal .dialog-body{display:block;padding:24px 30px 30px}
+#profile-modal .profile-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}
+#profile-modal .profile-panel{min-width:0}
+#profile-modal .password-panel{min-width:0;padding-left:28px;border-left:1px solid #e2e8ee}
+#profile-modal .profile-fields,#profile-modal .password-fields{display:grid;gap:13px}
+#profile-modal .profile-section-title{margin:0;color:#17212b;font-size:1rem;font-weight:700}
+#profile-modal input[readonly]{background:#edf1f3;color:#64727e;cursor:not-allowed}
+@media(max-width:720px){
+  #profile-modal{width:100%;max-height:94vh}
+  #profile-modal .profile-layout{grid-template-columns:1fr;gap:24px}
+  #profile-modal .password-panel{padding:22px 0 0;border-top:1px solid #e2e8ee;border-left:0}
+}
 
 /* ---------- Footer ---------- */
 .site-foot{margin-top:64px;padding:48px 0 calc(24px + env(safe-area-inset-bottom,0px));background:#0c1c2a;color:#b9c6d1}
@@ -205,9 +266,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
     </button>
   </div>
+  <div class="sidebar-resize-handle" id="sidebar-resize-handle" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin="220" aria-valuemax="420" aria-valuenow="264" tabindex="0"></div>
   <nav class="sidebar-nav" aria-label="Main navigation">
-    <a class="sidebar-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg><span>Dashboard</span>
+    <a class="sidebar-link{% if request.resolver_match.url_name == 'dashboard' and not conversation %} active{% endif %}" id="new-chat-link" href="{% url 'dashboard' %}" title="New chat"{% if request.resolver_match.url_name == 'dashboard' and not conversation %} aria-current="page"{% endif %}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New chat</span>
     </a>
     <a class="sidebar-link" href="{% url 'home' %}#features">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 14.8 9.2 21 12l-6.2 2.8L12 21l-2.8-6.2L3 12l6.2-2.8L12 3Z"/></svg><span>Features</span>
@@ -216,16 +278,81 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2-2.4 4"/><path d="M12 17h.01"/></svg><span>How it works</span>
     </a>
   </nav>
+  <section class="sidebar-history" aria-label="Chat history">
+    <h2 class="sidebar-section-title">Recent chats</h2>
+    <ul class="sidebar-history-list" id="sidebar-chat-history">
+      {% for item in conversations %}
+      <li>
+        <a class="sidebar-link{% if conversation.pk == item.pk %} active{% endif %}" href="{{ item.url }}" title="{{ item.title }}" data-conversation-id="{{ item.token }}" {% if conversation.pk == item.pk %}aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l-2 2v-7.5A7.5 7.5 0 0 1 10.5 6H12"/><path d="M15 4h6m-3-3v6"/></svg>
+          <span>{{ item.title }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
   <div class="sidebar-spacer"></div>
   <div class="sidebar-account">
-    <span class="sidebar-avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
-    <div class="sidebar-identity"><strong>{{ user.username }}</strong><span>Signed in</span></div>
-    <a class="sidebar-logout" href="{% url 'logout' %}" aria-label="Log out" title="Log out">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
-    </a>
+    <div class="sidebar-account-menu">
+      <button class="sidebar-account-trigger" type="button" id="account-menu-trigger" aria-expanded="false" aria-controls="account-menu" title="Account menu">
+        <span class="sidebar-avatar" id="account-avatar" aria-hidden="true">{{ agent_user.Full_Name|default:user.first_name|default:user.username|first|upper }}</span>
+        <span class="sidebar-identity"><strong id="account-full-name">{{ agent_user.Full_Name|default:user.first_name|default:user.username }}</strong><span>{{ user.email }}</span></span>
+        <svg class="sidebar-account-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </button>
+      <nav class="account-menu" id="account-menu" aria-label="Account menu" hidden>
+        <button type="button" data-open-modal="profile-modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Profile</span>
+        </button>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Reminders</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-14 5h4"/></svg><span>Bank account</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 6-7"/></svg><span>Payment history</span></a>
+        <span class="account-menu-divider" aria-hidden="true"></span>
+        <a href="{% url 'logout' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg><span>Log out</span>
+        </a>
+      </nav>
+    </div>
   </div>
   <button class="sidebar-scrim" type="button" aria-label="Close sidebar"></button>
 </aside>
+<dialog class="auth-dialog" id="profile-modal" aria-labelledby="profile-title">
+  <div class="dialog-hero">
+    <div class="dialog-top">
+      <div><h2 id="profile-title">Your profile</h2><p>Update your account details and password.</p></div>
+      <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+    </div>
+  </div>
+  <div class="dialog-body">
+    <div class="profile-layout">
+      <section class="profile-panel" aria-labelledby="profile-details-title">
+        <h3 class="profile-section-title" id="profile-details-title">Profile details</h3>
+        <p class="auth-status" id="profile-status" aria-live="polite"></p>
+        <form id="profile-form" action="{% url 'update_profile' %}" method="post" data-profile-form>
+          {% csrf_token %}
+          <div class="profile-fields">
+            <div class="field"><label for="profile-full-name">Full name</label><input id="profile-full-name" name="full_name" type="text" maxlength="100" autocomplete="name" value="{{ agent_user.Full_Name }}" required></div>
+            <div class="field"><label for="profile-email">Email</label><input id="profile-email" type="email" value="{{ user.email }}" readonly aria-readonly="true"></div>
+            <div class="field"><label for="profile-mobile">Mobile number</label><input id="profile-mobile" name="mobile_number" type="tel" maxlength="15" autocomplete="tel" value="{{ agent_user.mobile_number|default:'' }}"></div>
+            <button class="btn" type="submit">Save profile</button>
+          </div>
+        </form>
+      </section>
+      <section class="password-panel" aria-labelledby="password-title">
+        <h3 class="profile-section-title" id="password-title">Change password</h3>
+        <p class="auth-status" id="password-status" aria-live="polite"></p>
+        <form id="password-form" action="{% url 'change_password' %}" method="post" data-password-form>
+          {% csrf_token %}
+          <div class="password-fields">
+            <div class="field"><label for="current-password">Current password</label><input id="current-password" name="current_password" type="password" autocomplete="current-password" required></div>
+            <div class="field"><label for="new-password">New password</label><input id="new-password" name="new_password" type="password" autocomplete="new-password" required></div>
+            <div class="field"><label for="confirm-new-password">Confirm new password</label><input id="confirm-new-password" name="confirm_password" type="password" autocomplete="new-password" required></div>
+            <button class="btn" type="submit">Update password</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</dialog>
 {% else %}
 <header class="site-head">
   <div class="wrap nav">
@@ -233,7 +360,7 @@
     <nav aria-label="Main">
       <a href="{% url 'home' %}#features">Features</a>
       <a href="{% url 'home' %}#how">How it works</a>
-      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'dashboard' %}">AI Agent</a>
     </nav>
     <div class="nav-actions">
       {% if user.is_authenticated %}
@@ -340,10 +467,10 @@
       <nav class="site-foot-links" aria-label="Footer navigation">
         <a href="{% url 'home' %}#features">Features</a>
         <a href="{% url 'home' %}#how">How it works</a>
-        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'dashboard' %}">AI Agent</a>
       </nav>
     </div>
-    <div class="site-foot-bottom"><span>Your next step starts here.</span><a href="{% url 'home' %}" aria-label="Back to top">Back to top ↑</a></div>
+
   </div>
 </footer>
 {% endif %}
@@ -352,9 +479,58 @@
 const sidebar = document.getElementById('app-sidebar');
 if (sidebar) {
   const toggle = sidebar.querySelector('.sidebar-toggle');
+  const resizeHandle = document.getElementById('sidebar-resize-handle');
   const scrim = sidebar.querySelector('.sidebar-scrim');
   const mobileQuery = window.matchMedia('(max-width: 720px)');
   const savedState = localStorage.getItem('pathway-sidebar-collapsed');
+  const minSidebarWidth = 220;
+  const maxSidebarWidth = 420;
+
+  function setSidebarWidth(width) {
+    const clampedWidth = Math.max(minSidebarWidth, Math.min(maxSidebarWidth, width));
+    document.body.style.setProperty('--sidebar-width', `${clampedWidth}px`);
+    resizeHandle.setAttribute('aria-valuenow', String(clampedWidth));
+    localStorage.setItem('pathway-sidebar-width', String(clampedWidth));
+  }
+
+  if (resizeHandle) {
+    const savedWidth = Number(localStorage.getItem('pathway-sidebar-width'));
+    if (Number.isFinite(savedWidth) && savedWidth > 0) {
+      setSidebarWidth(savedWidth);
+    }
+
+    resizeHandle.addEventListener('pointerdown', (event) => {
+      if (mobileQuery.matches || document.body.classList.contains('sidebar-collapsed')) return;
+      event.preventDefault();
+      document.body.classList.add('sidebar-resizing');
+      resizeHandle.setPointerCapture(event.pointerId);
+      setSidebarWidth(event.clientX);
+    });
+    resizeHandle.addEventListener('pointermove', (event) => {
+      if (resizeHandle.hasPointerCapture(event.pointerId)) setSidebarWidth(event.clientX);
+    });
+    const stopResize = (event) => {
+      if (resizeHandle.hasPointerCapture(event.pointerId)) {
+        resizeHandle.releasePointerCapture(event.pointerId);
+        document.body.classList.remove('sidebar-resizing');
+      }
+    };
+    resizeHandle.addEventListener('pointerup', stopResize);
+    resizeHandle.addEventListener('pointercancel', stopResize);
+    resizeHandle.addEventListener('keydown', (event) => {
+      const currentWidth = Number.parseInt(resizeHandle.getAttribute('aria-valuenow'), 10);
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        setSidebarWidth(currentWidth + (event.key === 'ArrowRight' ? 16 : -16));
+      } else if (event.key === 'Home') {
+        event.preventDefault();
+        setSidebarWidth(minSidebarWidth);
+      } else if (event.key === 'End') {
+        event.preventDefault();
+        setSidebarWidth(maxSidebarWidth);
+      }
+    });
+  }
 
   function setSidebarCollapsed(collapsed) {
     document.body.classList.toggle('sidebar-collapsed', collapsed);
@@ -379,6 +555,30 @@ if (sidebar) {
   });
 }
 
+const accountMenuTrigger = document.getElementById('account-menu-trigger');
+const accountMenu = document.getElementById('account-menu');
+if (accountMenuTrigger && accountMenu) {
+  function setAccountMenuOpen(open) {
+    accountMenu.hidden = !open;
+    accountMenuTrigger.setAttribute('aria-expanded', String(open));
+  }
+
+  accountMenuTrigger.addEventListener('click', () => {
+    setAccountMenuOpen(accountMenu.hidden);
+  });
+  document.addEventListener('click', (event) => {
+    if (!accountMenu.contains(event.target) && !accountMenuTrigger.contains(event.target)) {
+      setAccountMenuOpen(false);
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setAccountMenuOpen(false);
+  });
+  accountMenu.querySelectorAll('[data-open-modal]').forEach((button) => {
+    button.addEventListener('click', () => setAccountMenuOpen(false));
+  });
+}
+
 document.querySelectorAll('[data-open-modal]').forEach((button) => {
   button.addEventListener('click', () => {
     const target = document.getElementById(button.dataset.openModal);
@@ -387,6 +587,72 @@ document.querySelectorAll('[data-open-modal]').forEach((button) => {
     target.showModal();
   });
 });
+
+const passwordForm = document.getElementById('password-form');
+
+async function submitAccountForm(form, status) {
+  const submit = form.querySelector('[type="submit"]');
+  const label = submit.textContent;
+  const values = Object.fromEntries(new FormData(form).entries());
+  status.textContent = '';
+  status.classList.remove('success');
+  submit.disabled = true;
+  submit.textContent = 'Please wait…';
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify(values),
+      credentials: 'same-origin'
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      status.textContent = result.message || 'The request could not be completed.';
+      return null;
+    }
+    status.textContent = result.message;
+    status.classList.add('success');
+    return result;
+  } catch (error) {
+    status.textContent = 'Could not connect. Please try again.';
+    return null;
+  } finally {
+    submit.disabled = false;
+    submit.textContent = label;
+  }
+}
+
+const profileForm = document.getElementById('profile-form');
+if (profileForm) {
+  profileForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const result = await submitAccountForm(
+      profileForm,
+      document.getElementById('profile-status')
+    );
+    if (!result) return;
+    document.getElementById('account-full-name').textContent = result.profile.full_name;
+    document.getElementById('account-avatar').textContent = result.profile.full_name.trim().charAt(0).toUpperCase();
+    document.getElementById('profile-full-name').value = result.profile.full_name;
+    document.getElementById('profile-mobile').value = result.profile.mobile_number;
+  });
+}
+
+if (passwordForm) {
+  passwordForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const result = await submitAccountForm(
+      passwordForm,
+      document.getElementById('password-status')
+    );
+    if (!result) return;
+    passwordForm.reset();
+  });
+}
 
 document.querySelectorAll('.auth-dialog .dialog-close').forEach((button) => {
   button.addEventListener('click', () => button.closest('dialog').close());
