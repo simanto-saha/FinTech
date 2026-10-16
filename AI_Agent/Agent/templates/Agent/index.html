@@ -1,0 +1,84 @@
+{% extends "Agent/base.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}<style>
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:56px 0 72px}
+.hero h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:800;margin-bottom:18px}
+.hero p{max-width:46ch;font-size:1.1rem;color:var(--mute);margin-bottom:26px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.conv{padding:26px;box-shadow:0 20px 50px -24px rgba(18,38,58,.35)}
+.conv label{font-size:.85rem;color:var(--mute);display:block;margin-bottom:6px}
+.row{display:grid;grid-template-columns:1fr 110px;gap:10px;margin-bottom:16px}
+.conv input,.conv select{width:100%;padding:12px;font:inherit;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+.out{font:800 2.2rem "Bricolage Grotesque",sans-serif;color:var(--teal)}
+.cmp{margin-top:14px;display:grid;gap:8px}
+.cmp div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:10px;background:var(--paper);font-size:.95rem}
+.cmp .best{background:var(--sky);font-weight:700}
+.sec{padding:64px 0}
+.sec h2{font-size:clamp(1.7rem,3.5vw,2.4rem);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}
+.grid h3{margin:10px 0 6px;font-size:1.15rem}
+.ico{width:42px;height:42px;border-radius:12px;background:var(--sky);display:grid;place-items:center;font-size:1.3rem}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:30px;border-top:3px solid var(--teal)}
+.steps div{padding:20px 20px 0 0}
+.steps b{display:block;font:700 1.1rem "Bricolage Grotesque",sans-serif;margin-bottom:4px}
+.band{background:var(--ink);color:#fff;border-radius:22px;padding:44px;text-align:center;margin:30px 0 60px}
+.band h2{margin-bottom:16px;color:#fff}
+footer{border-top:1px solid var(--line);padding:26px 0;color:var(--mute);font-size:.9rem}
+@media (max-width:860px){.hero,.grid,.steps{grid-template-columns:1fr}.steps div{padding:16px 0}}
+</style>{% endblock %}
+{% block content %}
+<div class="wrap">
+
+<section class="hero">
+  <div>
+    <h1>Pay tuition and manage money abroad without losing sleep.</h1>
+    <p>Pathway compares transfer fees, tracks your visa-safe budget, and reminds you before every fee deadline, in one place for students studying across borders.</p>
+    <div class="cta"><button class="btn" type="button" data-open-modal="register-modal">Start free</button><a class="btn ghost" href="#how">See how it works</a></div>
+  </div>
+  <div class="card conv" aria-label="Transfer cost calculator">
+    <label for="amt">You send from Bangladesh</label>
+    <div class="row"><input id="amt" type="number" value="500000" min="1"><input value="BDT" disabled aria-label="From currency"></div>
+    <label for="cur">Recipient gets</label>
+    <div class="row"><div class="out" id="out">–</div>
+      <select id="cur"><option value="GBP">GBP</option><option value="USD">USD</option><option value="CAD">CAD</option><option value="AUD">AUD</option></select></div>
+    <div class="cmp" id="cmp"></div>
+    <p class="muted" style="font-size:.78rem;margin-top:12px">Sample rates for demo only. Connect live rates before launch.</p>
+  </div>
+</section>
+
+<section class="sec" id="features">
+  <h2>Everything a student needs for money</h2>
+  <p class="muted">Built around tuition, rent, and the rules of your visa.</p>
+  <div class="grid">
+    <div class="card"><div class="ico">💱</div><h3>Cheapest transfer finder</h3><p class="muted">See what each provider really delivers after fees and exchange margin.</p></div>
+    <div class="card"><div class="ico">📅</div><h3>Deadline reminders</h3><p class="muted">Tuition, visa, and insurance dates with alerts 14, 7, and 1 day ahead.</p></div>
+    <div class="card"><div class="ico">📊</div><h3>Budget in two currencies</h3><p class="muted">Track spending in your local currency and your home currency side by side.</p></div>
+    <div class="card"><div class="ico">🎓</div><h3>Scholarship and loan tracker</h3><p class="muted">Keep every award, installment, and repayment date in one list.</p></div>
+    <div class="card"><div class="ico">🛡️</div><h3>Proof of funds</h3><p class="muted">Download a bank-statement summary for visa and university checks.</p></div>
+    <div class="card"><div class="ico">💬</div><h3>Ask the assistant</h3><p class="muted">Ask "Can I afford a flat near campus?" and get an answer from your own numbers.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="how">
+  <h2>Set up in three steps</h2>
+  <div class="steps">
+    <div><b>1. Add your university</b><span class="muted">Choose your country, course, and fee schedule.</span></div>
+    <div><b>2. Link your accounts</b><span class="muted">Connect bank and wallet balances in read-only mode.</span></div>
+    <div><b>3. Get your plan</b><span class="muted">Receive a monthly budget and the best transfer time.</span></div>
+  </div>
+</section>
+
+<div class="band"><h2>Know what your next transfer will cost.</h2><a class="btn" style="background:var(--amber);border-color:var(--amber);color:#12263A" href="{% url 'dashboard' %}">Open my dashboard</a></div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+const rate={GBP:.0066,USD:.0083,CAD:.0114,AUD:.0127};
+const prov=[["Pathway partner",.0045,0],["Bank wire",.02,25],["Cash agent",.012,10]];
+function calc(){
+  const a=+document.getElementById("amt").value||0,c=document.getElementById("cur").value,r=rate[c];
+  const res=prov.map(([n,m,f])=>[n,Math.max(0,(a*(1-m)-f*120)*r)]);
+  document.getElementById("out").textContent=res[0][1].toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById("cmp").innerHTML=res.map((x,i)=>`<div class="${i?'':'best'}"><span>${x[0]}</span><span>${x[1].toLocaleString(undefined,{maximumFractionDigits:0})} ${c}</span></div>`).join("");
+}
+document.getElementById("amt").oninput=calc;document.getElementById("cur").onchange=calc;calc();
+</script>{% endblock %}

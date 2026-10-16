@@ -1,0 +1,88 @@
+{% extends "Agent/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}<style>
+.app{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 70px)}
+aside{background:var(--card);border-right:1px solid var(--line);padding:22px 16px;position:sticky;top:0;height:100vh}
+aside .logo{margin-bottom:26px;padding-left:8px}
+aside a{display:block;padding:10px 12px;border-radius:10px;color:var(--mute);margin-bottom:4px;font-weight:500}
+aside a.on,aside a:hover{background:var(--sky);color:var(--teal-d)}
+main{padding:26px clamp(16px,3vw,36px);max-width:1100px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap}
+.top h1{font-size:1.7rem}
+.g{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1.4fr 1fr;margin-top:16px}
+.big{font:800 1.7rem "Bricolage Grotesque",sans-serif;margin:4px 0}
+.up{color:var(--teal);font-size:.85rem}.down{color:var(--coral);font-size:.85rem}
+.hero-c{background:var(--ink);color:#fff;border:0}
+.hero-c .muted{color:#A9BAC8}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:10px 0 6px}
+.bar span{display:block;height:100%;background:var(--amber);border-radius:99px}
+.chart{display:flex;align-items:flex-end;gap:12px;height:170px;margin-top:14px}
+.chart div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;font-size:.78rem;color:var(--mute)}
+.chart i{width:100%;border-radius:8px 8px 0 0;background:var(--teal);display:block}
+.chart div.now i{background:var(--amber)}
+ul{list-style:none;padding:0}
+li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+li:last-child{border:0}
+h2{font-size:1.1rem;margin-bottom:4px}
+.chat{display:flex;gap:8px;margin-top:12px}
+.chat input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font:inherit}
+.bubble{background:var(--sky);padding:12px 14px;border-radius:14px;font-size:.92rem;margin-top:10px}
+@media (max-width:980px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+@media (max-width:720px){.app{grid-template-columns:1fr}aside{position:static;height:auto;display:flex;gap:6px;overflow-x:auto;padding:12px;border-right:0;border-bottom:1px solid var(--line)}aside .logo{display:none}aside a{white-space:nowrap;margin:0}.g4{grid-template-columns:1fr}}
+</style>{% endblock %}
+{% block content %}
+<div class="app">
+<aside>
+  <a class="on" href="dashboard.html">Overview</a><a href="#pay">Payments</a><a href="#bud">Budget</a><a href="#send">Send money</a><a href="#aid">Scholarships</a><a href="#ask">Assistant</a>
+</aside>
+<main>
+  <div class="top"><div><h1>Hi Tumi 👋</h1><p class="muted">You are 23 days from your next tuition payment.</p></div><a class="btn" href="#send">Send money</a></div>
+
+  <div class="g g4">
+    <div class="card hero-c"><span class="muted">Total balance</span><div class="big">£4,820</div><span class="muted">≈ ৳ 7,30,000</span></div>
+    <div class="card"><span class="muted">Spent this month</span><div class="big">£1,115</div><span class="down">▲ 8% vs last month</span></div>
+    <div class="card"><span class="muted">Monthly income</span><div class="big">£1,380</div><span class="up">Family + part-time</span></div>
+    <div class="card"><span class="muted">Visa funds check</span><div class="big">Safe</div><span class="up">£1,023 above required</span></div>
+  </div>
+
+  <div class="g g2">
+    <section class="card" id="pay">
+      <h2>Tuition progress</h2><p class="muted">Semester 2 · University of Leeds</p>
+      <div class="bar" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100"><span style="width:62%"></span></div>
+      <div style="display:flex;justify-content:space-between"><b>£5,580 paid</b><span class="muted">£3,420 left · due 8 Nov</span></div>
+      <div class="chart" id="bud" role="img" aria-label="Monthly spending, last 6 months">
+        <div><i style="height:60%"></i>May</div><div><i style="height:72%"></i>Jun</div><div><i style="height:55%"></i>Jul</div><div><i style="height:80%"></i>Aug</div><div><i style="height:68%"></i>Sep</div><div class="now"><i style="height:74%"></i>Oct</div>
+      </div>
+    </section>
+
+    <section class="card" id="send">
+      <h2>Best way to send £3,420</h2><p class="muted">Cost to your family in BDT</p>
+      <ul>
+        <li><span><b>Pathway partner</b><br><span class="muted">Arrives in 1 day</span></span><span class="tag">৳ 2,150 fee</span></li>
+        <li><span><b>Bank wire</b><br><span class="muted">Arrives in 3 days</span></span><span class="tag warn">৳ 6,900 fee</span></li>
+        <li><span><b>Cash agent</b><br><span class="muted">Arrives in 1 day</span></span><span class="tag warn">৳ 4,000 fee</span></li>
+      </ul>
+      <a class="btn" style="width:100%;text-align:center" href="#send">Send with Pathway partner</a>
+    </section>
+  </div>
+
+  <div class="g g2">
+    <section class="card" id="aid">
+      <h2>Upcoming deadlines</h2>
+      <ul>
+        <li><span>Tuition installment</span><span class="tag warn">8 Nov</span></li>
+        <li><span>Health surcharge renewal</span><span class="tag">2 Dec</span></li>
+        <li><span>Scholarship installment (£900)</span><span class="tag">15 Dec</span></li>
+        <li><span>Rent, shared flat</span><span class="tag">1 Nov</span></li>
+      </ul>
+    </section>
+    <section class="card" id="ask">
+      <h2>Ask the assistant</h2>
+      <div class="bubble">Rates are about 1.4% better than last week. Sending this week could save you ৳ 3,100.</div>
+      <form class="chat" onsubmit="return false"><input aria-label="Ask a question" placeholder="Can I afford a flat near campus?"><button class="btn">Ask</button></form>
+    </section>
+  </div>
+</main>
+</div>
+{% endblock %}

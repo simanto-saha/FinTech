@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}Pathway{% endblock %} – Student finance assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<style>
+.nav-actions{display:flex;align-items:center;gap:10px}
+.auth-dialog{width:min(92vw,460px);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:var(--r);padding:26px;background:var(--card);color:var(--ink);margin:auto}
+.auth-dialog::backdrop{background:rgba(10,25,38,.62);backdrop-filter:blur(3px)}
+.auth-dialog h2{margin-bottom:6px}
+.auth-dialog p{color:var(--mute)}
+.auth-dialog form{display:grid;gap:12px;margin-top:18px}
+.auth-dialog label{font-weight:600}
+.auth-dialog input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit}
+.dialog-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.dialog-close{border:0;background:transparent;color:var(--mute);font-size:1.6rem;line-height:1;cursor:pointer}
+.auth-status{min-height:1.5em;color:var(--coral)!important}
+.auth-status.success{color:var(--teal)!important}
+.auth-switch{border:0;padding:0;background:none;color:var(--teal-d);font:inherit;text-decoration:underline;cursor:pointer}
+@media(max-width:720px){.nav-actions{gap:6px}.nav-actions .btn{padding:9px 12px;font-size:.9rem}}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap nav">
+    <a class="logo" href="{% url 'home' %}"><i></i>Pathway</a>
+    <nav aria-label="Main">
+      <a href="{% url 'home' %}#features">Features</a>
+      <a href="{% url 'home' %}#how">How it works</a>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+    </nav>
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
+        <span class="muted">{{ user.username }}</span>
+        <a class="btn ghost" href="{% url 'logout' %}">Log out</a>
+      {% else %}
+        <button class="btn ghost" type="button" data-open-modal="login-modal">Log in</button>
+        <button class="btn" type="button" data-open-modal="register-modal">Registration</button>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<dialog class="auth-dialog" id="login-modal" aria-labelledby="login-title">
+  <div class="dialog-top">
+    <div><h2 id="login-title">Welcome back</h2><p>Log in to your Pathway account.</p></div>
+    <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+  </div>
+  <p class="auth-status" aria-live="polite"></p>
+  <form action="{% url 'login' %}" method="post" data-json-auth>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.GET.next }}">
+    <div><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="email" required></div>
+    <div><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn" type="submit">Log in</button>
+  </form>
+  <p>New to Pathway? <button class="auth-switch" type="button" data-open-modal="register-modal">Create an account</button></p>
+</dialog>
+
+<dialog class="auth-dialog" id="register-modal" aria-labelledby="register-title">
+  <div class="dialog-top">
+    <div><h2 id="register-title">Create your account</h2><p>Enter your details to register.</p></div>
+    <button class="dialog-close" type="button" aria-label="Close">&times;</button>
+  </div>
+  <p class="auth-status" aria-live="polite"></p>
+  <form action="{% url 'register' %}" method="post" data-json-auth>
+    {% csrf_token %}
+    <div><label for="register-name">Full name</label><input id="register-name" name="full_name" type="text" maxlength="100" autocomplete="name" required></div>
+    <div><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" required></div>
+    <div><label for="register-password">Password</label><input id="register-password" name="password" type="password" autocomplete="new-password" required></div>
+    <div><label for="register-confirm-password">Confirm password</label><input id="register-confirm-password" name="confirm_password" type="password" autocomplete="new-password" required></div>
+    <button class="btn" type="submit">Create account</button>
+  </form>
+  <p>Already registered? <button class="auth-switch" type="button" data-open-modal="login-modal">Log in</button></p>
+</dialog>
+
+{% block content %}{% endblock %}
+
+<footer class="site-foot">
+  <div class="wrap"><span>© 2026 Pathway. Not a bank. Payments are handled by licensed partners.</span><span>Privacy · Terms · Help</span></div>
+</footer>
+{% block scripts %}{% endblock %}
+<script>
+document.querySelectorAll('[data-open-modal]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const target = document.getElementById(button.dataset.openModal);
+    if (!target) return;
+    document.querySelectorAll('.auth-dialog[open]').forEach((dialog) => dialog.close());
+    target.showModal();
+  });
+});
+
+document.querySelectorAll('.auth-dialog .dialog-close').forEach((button) => {
+  button.addEventListener('click', () => button.closest('dialog').close());
+});
+
+document.querySelectorAll('[data-json-auth]').forEach((form) => {
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const status = form.closest('dialog').querySelector('.auth-status');
+    const values = Object.fromEntries(new FormData(form).entries());
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    status.textContent = 'Please wait…';
+    status.classList.remove('success');
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(values),
+        credentials: 'same-origin'
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        status.textContent = result.message || 'The request could not be completed.';
+        return;
+      }
+
+      if (form.action === document.querySelector('#login-modal form').action) {
+        window.location.assign(result.redirect_url);
+        return;
+      }
+
+      form.reset();
+      form.closest('dialog').close();
+      const loginDialog = document.getElementById('login-modal');
+      loginDialog.querySelector('.auth-status').textContent = result.message;
+      loginDialog.querySelector('.auth-status').classList.add('success');
+      loginDialog.showModal();
+    } catch (error) {
+      status.textContent = 'Could not connect. Please try again.';
+    }
+  });
+});
+
+const initialAuthDialog = document.getElementById('{{ initial_auth_dialog|default:""|escapejs }}');
+if (initialAuthDialog) initialAuthDialog.showModal();
+</script>
+</body>
+</html>
