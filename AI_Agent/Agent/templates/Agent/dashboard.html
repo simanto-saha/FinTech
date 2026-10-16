@@ -1,136 +1,228 @@
 {% extends "Agent/base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block head %}<style>
-.app{display:flex;justify-content:center;min-height:calc(100vh - 32px)}
-main{width:100%;max-width:1100px;margin-inline:auto;padding:26px clamp(16px,3vw,36px) 150px}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap}
-.top h1{font-size:1.7rem}
-.g{display:grid;gap:16px}
-.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1.4fr 1fr;margin-top:16px}
-.big{font:800 1.7rem "Bricolage Grotesque",sans-serif;margin:4px 0}
-.up{color:var(--teal);font-size:.85rem}.down{color:var(--coral);font-size:.85rem}
-.hero-c{background:var(--ink);color:#fff;border:0}
-.hero-c .muted{color:#A9BAC8}
-.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:10px 0 6px}
-.bar span{display:block;height:100%;background:var(--amber);border-radius:99px}
-.chart{display:flex;align-items:flex-end;gap:12px;height:170px;margin-top:14px}
-.chart div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;font-size:.78rem;color:var(--mute)}
-.chart i{width:100%;border-radius:8px 8px 0 0;background:var(--teal);display:block}
-.chart div.now i{background:var(--amber)}
-ul{list-style:none;padding:0}
-li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
-li:last-child{border:0}
-h2{font-size:1.1rem;margin-bottom:4px}
-.assistant-thread{display:grid;gap:18px;width:min(100%,780px);margin:34px auto 0}
-.assistant-message{max-width:88%;padding:14px 18px;border-radius:18px;font-size:.96rem;overflow-wrap:anywhere;white-space:pre-wrap}
-.assistant-message.assistant{justify-self:start;background:var(--sky)}
-.assistant-message.user{justify-self:end;background:var(--ink);color:#fff}
-.assistant-answer{margin-top:8px;color:var(--mute);font-size:.88rem}
-.assistant-composer-wrap{position:fixed;right:0;bottom:0;left:264px;z-index:40;padding:24px clamp(16px,4vw,48px) calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(246,248,249,0),var(--paper) 32%)}
-.sidebar-collapsed .assistant-composer-wrap{left:76px}
-.assistant-composer{display:flex;align-items:center;gap:10px;width:min(100%,820px);min-height:58px;margin:0 auto;padding:8px 10px 8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);box-shadow:0 8px 28px rgba(18,38,58,.09)}
-.assistant-composer textarea{flex:1;min-width:0;max-height:130px;resize:none;padding:10px 4px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit}
-.assistant-composer textarea:focus{outline:0}
-.assistant-composer textarea::placeholder{color:var(--mute)}
+.dash{--t:var(--teal,#14897c);--td:var(--teal-d,#0a7a6d);--c:var(--coral,#d9473a);--k:var(--ink,#122a3d);--m:var(--mute,#5b6b79);--l:var(--line,#e2e8ee);--sk:var(--sky,#e8f4f2);
+  width:100%;max-width:860px;margin-inline:auto;padding:18px clamp(16px,3vw,28px) 64px}
+
+/* ---------- Chat | Reminder switch ---------- */
+.modes{display:flex;justify-content:center}
+.modes div{display:inline-flex;gap:2px;padding:4px;border-radius:99px;background:#eef1f3}
+.modes button{display:inline-flex;align-items:center;gap:6px;padding:9px 26px;border:0;border-radius:99px;background:transparent;color:var(--m);font:500 .95rem "DM Sans",sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.modes button svg{width:15px;height:15px}
+.modes button[aria-selected="true"]{background:#fff;color:var(--k);font-weight:700;box-shadow:0 1px 4px rgba(18,38,58,.14)}
+.modes button:focus-visible{outline:2px solid var(--t);outline-offset:2px}
+.panel[hidden]{display:none}
+.panel{padding-top:clamp(20px,5vh,48px);display:grid;gap:22px}
+
+/* ---------- Chat ---------- */
+.begin{margin:clamp(10px,5vh,44px) 0 0;text-align:center;font:400 clamp(1.5rem,3.4vw,2rem) "DM Sans",sans-serif;letter-spacing:-.01em;color:var(--k)}
+/* Chat started: hide graphs + heading, push the composer to the bottom */
+.has-chat{padding-bottom:12px}
+.has-chat .fx-wrap,.has-chat .begin{display:none}
+.has-chat #panel-chat{padding-top:20px;min-height:calc(100dvh - 190px);grid-template-rows:1fr auto auto;gap:14px}
+.has-chat .assistant-thread{max-height:none;overflow:visible;align-content:start;gap:26px;padding:8px 0 40px}
+.has-chat .assistant-composer{position:sticky;bottom:calc(34px + env(safe-area-inset-bottom,0px));z-index:5}
+.has-chat .question-status{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));margin:0;z-index:5}
+.assistant-thread{display:grid;gap:14px;width:100%;max-height:min(46vh,420px);overflow-y:auto;padding-right:4px;scroll-behavior:smooth}
+.assistant-thread:empty{display:none}
+.assistant-message{max-width:88%;padding:12px 16px;border-radius:18px;font-size:.96rem;overflow-wrap:anywhere;white-space:pre-wrap}
+.assistant-message.user{justify-self:start;max-width:min(85%,640px);padding:12px 18px;border-radius:20px;background:#e9edf0;color:var(--k);line-height:1.55}
+.assistant-message.assistant{justify-self:stretch;max-width:100%;position:relative;padding:2px 0 2px 42px;border-radius:0;background:transparent;color:var(--k);line-height:1.7;font-size:1rem}
+.assistant-message.assistant::before{content:"";position:absolute;left:0;top:2px;width:28px;height:28px;border-radius:50%;background:conic-gradient(from 200deg,#14b8a6,#0a7a6d,#e8a13f,#14b8a6)}
+.assistant-composer{display:flex;align-items:center;gap:8px;width:100%;min-height:58px;padding:8px 10px 8px 14px;border:1px solid var(--l);border-radius:999px;background:#fff;box-shadow:0 10px 40px -14px rgba(18,38,58,.22);transition:border-color .15s,box-shadow .15s}
+.assistant-composer:focus-within{border-color:var(--t);box-shadow:0 10px 40px -14px rgba(18,38,58,.22),0 0 0 4px rgba(20,137,124,.14)}
+.assistant-composer textarea{flex:1;min-width:0;max-height:130px;resize:none;padding:10px 4px;border:0;outline:0;background:transparent;color:var(--k);font:inherit;font-size:1rem}
+.assistant-composer textarea::placeholder{color:#8a97a3}
 .composer-icon,.composer-mode,.composer-submit{display:inline-flex;flex:none;align-items:center;justify-content:center;border:0;cursor:pointer}
-.composer-icon{width:38px;height:38px;border-radius:50%;background:transparent;color:var(--ink)}
-.composer-icon:hover{background:var(--sky);color:var(--teal-d)}
+.composer-icon{width:38px;height:38px;border-radius:50%;background:transparent;color:var(--k)}
+.composer-icon:hover{background:var(--sk);color:var(--td)}
 .composer-icon svg,.composer-submit svg{width:20px;height:20px}
-.composer-mode{gap:6px;padding:8px 10px;border-radius:999px;background:transparent;color:var(--mute);font:500 .9rem "DM Sans",sans-serif;white-space:nowrap}
-.composer-mode:hover,.composer-mode[aria-pressed="true"]{background:var(--sky);color:var(--teal-d)}
-.composer-submit{width:40px;height:40px;border-radius:50%;background:var(--teal);color:#fff}
-.composer-submit:hover{background:var(--teal-d)}
+.composer-mode{gap:6px;padding:8px 10px;border-radius:999px;background:transparent;color:#8a97a3;font:500 .95rem "DM Sans",sans-serif;white-space:nowrap}
+.composer-mode svg{width:18px;height:18px}
+.composer-mode:hover,.composer-mode[aria-pressed="true"]{background:var(--sk);color:var(--td)}
+.composer-submit{width:40px;height:40px;border-radius:50%;background:var(--t);color:#fff}
+.composer-submit:hover{background:var(--td)}
 .composer-submit:disabled{opacity:.55;cursor:wait}
-.question-status{width:min(100%,820px);min-height:0;margin:7px auto 0;color:var(--coral);font-size:.82rem;text-align:center}
+.composer-plus-label{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.question-status{margin:-12px 0 0;color:var(--c);font-size:.84rem;text-align:center}
 .question-status:empty{display:none}
-.question-status.success{color:var(--teal-d)}
-.composer-plus-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media (max-width:980px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-@media(max-width:720px){.g4{grid-template-columns:1fr}.assistant-composer-wrap,.sidebar-collapsed .assistant-composer-wrap{left:76px;padding:16px 10px calc(12px + env(safe-area-inset-bottom,0px))}.assistant-composer{gap:4px;padding-left:8px}.composer-mode{font-size:0;gap:0;padding:8px}.composer-mode svg{width:20px;height:20px}.composer-icon{width:34px;height:34px}.composer-submit{width:38px;height:38px}.assistant-composer textarea{font-size:16px}}
+.question-status.success{color:var(--td)}
+
+/* ---------- Currency slider ---------- */
+.fx-wrap{min-width:0}
+.fx-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.fx-title{font-weight:700;font-size:.95rem;color:var(--k)}
+.fx-src{margin-left:auto;color:var(--m);font-size:.78rem}
+.fx-nav{display:flex;gap:6px}
+.fx-nav button{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--l);border-radius:50%;background:#fff;color:var(--k);cursor:pointer;transition:background .15s,opacity .15s}
+.fx-nav button:hover:not(:disabled){background:var(--sk)}
+.fx-nav button:disabled{opacity:.35;cursor:default}
+.fx-nav svg{width:16px;height:16px}
+.slider{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:2px 2px 8px;margin:0 -2px;outline-offset:2px}
+.slider::-webkit-scrollbar{display:none}
+.slide{flex:0 0 calc((100% - 24px) / 3);min-width:0;scroll-snap-align:start;padding:14px 14px 12px;border:1px solid var(--l);border-radius:18px;background:#fff}
+.slide-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.slide-code{display:flex;align-items:center;gap:7px;font-weight:700;font-size:.9rem}
+.slide-code i{width:9px;height:9px;border-radius:50%;background:var(--dot)}
+.slide-code small{font-weight:400;color:var(--m);font-size:.76rem}
+.slide-chg{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:99px}
+.slide-chg.up{background:#e3f5f2;color:var(--td)}.slide-chg.down{background:#fdecea;color:var(--c)}
+.slide-rate{margin:6px 0 0;font:800 1.35rem "Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
+.slide svg{display:block;width:100%;height:60px;margin-top:6px;overflow:visible;touch-action:pan-y}
+.slide-foot{margin-top:6px;color:var(--m);font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:2px}
+.dots button{width:7px;height:7px;padding:0;border:0;border-radius:99px;background:#cfd8df;cursor:pointer;transition:width .2s,background .2s}
+.dots button[aria-current="true"]{width:18px;background:var(--t)}
+.up{color:var(--td)}.down{color:var(--c)}
+.fx-msg{display:grid;gap:10px;place-content:center;min-height:120px;text-align:center;color:var(--m);border:1px dashed var(--l);border-radius:18px;flex:1}
+.fx-msg button{justify-self:center;padding:8px 16px;border:0;border-radius:99px;background:var(--t);color:#fff;font:700 .85rem "DM Sans",sans-serif;cursor:pointer}
+.skeleton{border-radius:18px;background:linear-gradient(90deg,var(--sk),#f4f8f8,var(--sk));background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* ---------- Reminders ---------- */
+.rem-title{margin:0;text-align:center;font:400 clamp(1.5rem,3.4vw,2rem) "DM Sans",sans-serif;color:var(--k)}
+.rem-form{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:8px;border:1px solid var(--l);border-radius:22px;background:#fff;box-shadow:0 10px 40px -14px rgba(18,38,58,.22)}
+.rem-form input{min-width:0;padding:12px 14px;border:0;border-radius:14px;background:transparent;color:var(--k);font:inherit;font-size:1rem}
+.rem-form input:focus{outline:2px solid rgba(20,137,124,.35)}
+.rem-form input[type=datetime-local]{background:var(--sk)}
+.rem-form button{padding:0 22px;border:0;border-radius:14px;background:var(--t);color:#fff;font:700 .95rem "DM Sans",sans-serif;cursor:pointer}
+.rem-form button:hover{background:var(--td)}
+.rem-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.rem-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--l);border-radius:18px;background:#fff}
+.rem-item input{width:20px;height:20px;accent-color:var(--t);flex:none;cursor:pointer}
+.rem-main{flex:1;min-width:0}
+.rem-main b{display:block;overflow-wrap:anywhere}
+.rem-main span{font-size:.85rem;color:var(--m)}
+.rem-item.late .rem-main span{color:var(--c);font-weight:600}
+.rem-item.done .rem-main{opacity:.5;text-decoration:line-through}
+.rem-del{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--m);font-size:1.3rem;line-height:1;cursor:pointer}
+.rem-del:hover{background:#fdecea;color:var(--c)}
+.rem-empty{padding:28px 16px;border:1.5px dashed var(--l);border-radius:18px;text-align:center;color:var(--m)}
+
+@media(max-width:720px){
+  .dash{padding-top:12px}
+  .panel{gap:18px}
+  .modes button{padding:9px 22px}
+  .assistant-composer{gap:2px;padding-left:8px;min-height:56px}
+  .composer-mode{font-size:0;gap:0;padding:8px}
+  .composer-mode svg{width:20px;height:20px}
+  .composer-icon{width:34px;height:34px}.composer-submit{width:40px;height:40px}
+  .assistant-composer textarea{font-size:16px}
+  .slide{flex-basis:72%}
+  .fx-src{display:none}
+  .fx-nav{margin-left:auto}
+  .rem-form{grid-template-columns:1fr 1fr;border-radius:20px}
+  .rem-form input[name=title]{grid-column:1/-1}
+  .rem-form input,.rem-form button{font-size:16px;min-height:46px}
+}
+@media(prefers-reduced-motion:reduce){.skeleton{animation:none}}
 </style>{% endblock %}
 {% block content %}
-<div class="app">
-<main>
-  <div class="top"><div><h1>Hi Tumi 👋</h1><p class="muted">You are 23 days from your next tuition payment.</p></div><a class="btn" href="#send">Send money</a></div>
-
-  <div class="g g4">
-    <div class="card hero-c"><span class="muted">Total balance</span><div class="big">£4,820</div><span class="muted">≈ ৳ 7,30,000</span></div>
-    <div class="card"><span class="muted">Spent this month</span><div class="big">£1,115</div><span class="down">▲ 8% vs last month</span></div>
-    <div class="card"><span class="muted">Monthly income</span><div class="big">£1,380</div><span class="up">Family + part-time</span></div>
-    <div class="card"><span class="muted">Visa funds check</span><div class="big">Safe</div><span class="up">£1,023 above required</span></div>
+<main class="dash" id="dash">
+  <div class="modes" role="tablist" aria-label="Mode">
+    <div>
+      <button type="button" role="tab" id="tab-chat" aria-selected="true" aria-controls="panel-chat">Chat</button>
+      <button type="button" role="tab" id="tab-reminder" aria-selected="false" aria-controls="panel-reminder" tabindex="-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Reminder
+      </button>
+    </div>
   </div>
 
-  <div class="g g2">
-    <section class="card" id="pay">
-      <h2>Tuition progress</h2><p class="muted">Semester 2 · University of Leeds</p>
-      <div class="bar" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100"><span style="width:62%"></span></div>
-      <div style="display:flex;justify-content:space-between"><b>£5,580 paid</b><span class="muted">£3,420 left · due 8 Nov</span></div>
-      <div class="chart" id="bud" role="img" aria-label="Monthly spending, last 6 months">
-        <div><i style="height:60%"></i>May</div><div><i style="height:72%"></i>Jun</div><div><i style="height:55%"></i>Jul</div><div><i style="height:80%"></i>Aug</div><div><i style="height:68%"></i>Sep</div><div class="now"><i style="height:74%"></i>Oct</div>
+  <!-- Chat -->
+  <section class="panel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
+    <!-- Live currency slider -->
+    <section class="fx-wrap" aria-label="Exchange rates to Bangladeshi taka">
+      <div class="fx-bar">
+        <span class="fx-title">Exchange rates to BDT</span>
+        <span class="fx-src" id="fx-src"></span>
+        <div class="fx-nav">
+          <button type="button" id="fx-prev" aria-label="Previous currencies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <button type="button" id="fx-next" aria-label="Next currencies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
       </div>
+      <div class="slider" id="fx" tabindex="0" aria-label="Currency graphs, last 30 days"><div class="skeleton slide" style="height:150px"></div><div class="skeleton slide" style="height:150px"></div><div class="skeleton slide" style="height:150px"></div></div>
+      <div class="dots" id="fx-dots"></div>
     </section>
 
-    <section class="card" id="send">
-      <h2>Best way to send £3,420</h2><p class="muted">Cost to your family in BDT</p>
-      <ul>
-        <li><span><b>Pathway partner</b><br><span class="muted">Arrives in 1 day</span></span><span class="tag">৳ 2,150 fee</span></li>
-        <li><span><b>Bank wire</b><br><span class="muted">Arrives in 3 days</span></span><span class="tag warn">৳ 6,900 fee</span></li>
-        <li><span><b>Cash agent</b><br><span class="muted">Arrives in 1 day</span></span><span class="tag warn">৳ 4,000 fee</span></li>
-      </ul>
-      <a class="btn" style="width:100%;text-align:center" href="#send">Send with Pathway partner</a>
-    </section>
-  </div>
+    <h1 class="begin">Where should we begin?</h1>
 
-  <div class="g">
-    <section class="card" id="aid">
-      <h2>Upcoming deadlines</h2>
-      <ul>
-        <li><span>Tuition installment</span><span class="tag warn">8 Nov</span></li>
-        <li><span>Health surcharge renewal</span><span class="tag">2 Dec</span></li>
-        <li><span>Scholarship installment (£900)</span><span class="tag">15 Dec</span></li>
-        <li><span>Rent, shared flat</span><span class="tag">1 Nov</span></li>
-      </ul>
+    {% if questions %}
+    <section class="assistant-thread" id="assistant-history" aria-label="Previous assistant questions" aria-live="polite">
+      {% for item in questions %}
+        <div class="assistant-message user">{{ item.question_text }}</div>
+        {% if item.answer_text %}<div class="assistant-message assistant">{{ item.answer_text }}</div>{% endif %}
+      {% endfor %}
     </section>
-  </div>
-  {% if questions %}
-  <section class="assistant-thread" id="assistant-history" aria-label="Previous assistant questions" aria-live="polite">
-    {% for item in questions %}
-      <div class="assistant-message user">{{ item.question_text }}</div>
-      {% if item.answer_text %}<div class="assistant-message assistant">{{ item.answer_text }}</div>{% endif %}
-    {% endfor %}
+    {% else %}
+    <section class="assistant-thread" id="assistant-history" aria-label="Assistant conversation" aria-live="polite"></section>
+    {% endif %}
+
+    <form class="assistant-composer" id="assistant-question-form" action="{% url 'submit_ai_question' %}" method="post">
+      {% csrf_token %}
+      <button class="composer-icon" type="button" id="composer-plus" aria-label="Attachments are not available yet" title="Attachments are not available yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <label class="composer-plus-label" for="assistant-question-input">Ask a question</label>
+      <textarea id="assistant-question-input" name="question_text" aria-label="Ask a question" placeholder="Ask anything" maxlength="4000" rows="1" required></textarea>
+      <button class="composer-mode" type="button" id="think-mode" aria-pressed="false" title="Toggle think mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5a7 7 0 1 1 7 0c-.8.6-1.3 1.4-1.5 2.5h-4c-.2-1.1-.7-1.9-1.5-2.5Z"/></svg>
+        <span>Think</span>
+      </button>
+      <button class="composer-icon" type="button" id="voice-input" aria-label="Use voice input" title="Use voice input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
+      </button>
+      <button class="composer-submit" type="submit" aria-label="Send question" title="Send question">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+      </button>
+    </form>
+    <p class="question-status" id="question-status" role="status" aria-live="polite"></p>
   </section>
-  {% else %}
-  <section class="assistant-thread" id="assistant-history" aria-label="Assistant conversation" aria-live="polite"></section>
-  {% endif %}
+
+  <!-- Reminder -->
+  <section class="panel" id="panel-reminder" role="tabpanel" aria-labelledby="tab-reminder" hidden>
+    <h1 class="rem-title">What should I remind you about?</h1>
+    <form class="rem-form" id="rem-form">
+      <input name="title" type="text" maxlength="120" placeholder="e.g. Pay tuition installment" aria-label="Reminder" required>
+      <input name="due" type="datetime-local" aria-label="Date and time" required>
+      <button type="submit">Add</button>
+    </form>
+    <ul class="rem-list" id="rem-list" aria-live="polite"></ul>
+  </section>
 </main>
-</div>
-<div class="assistant-composer-wrap">
-  <form class="assistant-composer" id="assistant-question-form" action="{% url 'submit_ai_question' %}" method="post">
-    {% csrf_token %}
-    <button class="composer-icon" type="button" id="composer-plus" aria-label="Attachments are not available yet" title="Attachments are not available yet">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
-    <label class="composer-plus-label" for="assistant-question-input">Ask a question</label>
-    <textarea id="assistant-question-input" name="question_text" aria-label="Ask a question" placeholder="Ask anything" maxlength="4000" rows="1" required></textarea>
-    <button class="composer-mode" type="button" id="think-mode" aria-pressed="false" title="Toggle think mode">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5a7 7 0 1 1 7 0c-.8.6-1.3 1.4-1.5 2.5h-4c-.2-1.1-.7-1.9-1.5-2.5Z"/></svg>
-      <span>Think</span>
-    </button>
-    <button class="composer-icon" type="button" id="voice-input" aria-label="Use voice input" title="Use voice input">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
-    </button>
-    <button class="composer-submit" type="submit" aria-label="Send question" title="Send question">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
-    </button>
-  </form>
-  <p class="question-status" id="question-status" role="status" aria-live="polite"></p>
-</div>
 {% endblock %}
 {% block scripts %}
 <script>
+/* ---------- Chat | Reminder tabs ---------- */
+const tabs = [document.getElementById('tab-chat'), document.getElementById('tab-reminder')];
+const panels = [document.getElementById('panel-chat'), document.getElementById('panel-reminder')];
+function showTab(index) {
+  tabs.forEach((tab, i) => {
+    tab.setAttribute('aria-selected', String(i === index));
+    tab.tabIndex = i === index ? 0 : -1;
+    panels[i].hidden = i !== index;
+  });
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener('click', () => showTab(i));
+  tab.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const n = 1 - i; showTab(n); tabs[n].focus(); }
+  });
+});
+
+/* ---------- Assistant chat (original logic kept) ---------- */
 const questionForm = document.getElementById('assistant-question-form');
+const thread = document.getElementById('assistant-history');
+const dash = document.getElementById('dash');
+const syncChatState = () => dash.classList.toggle('has-chat', thread.children.length > 0);
+const scrollThread = () => { if (thread && thread.children.length) window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'}); };
+syncChatState();
+scrollThread();
+
 if (questionForm) {
   const questionInput = questionForm.querySelector('textarea[name="question_text"]');
+  const autosize = () => { questionInput.style.height = 'auto'; questionInput.style.height = Math.min(questionInput.scrollHeight, 130) + 'px'; };
+  questionInput.addEventListener('input', autosize);
+
   questionInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -172,11 +264,13 @@ if (questionForm) {
       const message = document.createElement('div');
       message.className = 'assistant-message user';
       message.textContent = result.question.question_text;
-      document.getElementById('assistant-history').append(message);
+      thread.append(message);
       input.value = '';
+      autosize();
       status.textContent = 'Your question has been saved.';
       status.classList.add('success');
-      message.scrollIntoView({block: 'center', behavior: 'smooth'});
+      syncChatState();
+      scrollThread();
     } catch (error) {
       status.textContent = 'Could not connect. Please try again.';
     } finally {
@@ -218,5 +312,184 @@ if (voiceInput) {
     recognition.start();
   });
 }
+
+/* ---------- Reminders (saved in this browser) ---------- */
+const REM_KEY = 'pathway_reminders_v1';
+const remForm = document.getElementById('rem-form');
+const remList = document.getElementById('rem-list');
+let reminders = [];
+try { reminders = JSON.parse(localStorage.getItem(REM_KEY) || '[]'); } catch (e) {}
+const saveReminders = () => { try { localStorage.setItem(REM_KEY, JSON.stringify(reminders)); } catch (e) {} };
+
+function renderReminders() {
+  remList.innerHTML = '';
+  if (!reminders.length) {
+    remList.innerHTML = '<li class="rem-empty">No reminders yet. Add tuition, rent or visa dates so you never miss them.</li>';
+    return;
+  }
+  const now = Date.now();
+  [...reminders].sort((a, b) => a.done - b.done || a.due - b.due).forEach((r) => {
+    const late = !r.done && r.due < now;
+    const li = document.createElement('li');
+    li.className = 'rem-item' + (r.done ? ' done' : '') + (late ? ' late' : '');
+    const check = document.createElement('input');
+    check.type = 'checkbox'; check.checked = r.done; check.setAttribute('aria-label', 'Mark as done');
+    check.addEventListener('change', () => { r.done = check.checked; saveReminders(); renderReminders(); });
+    const main = document.createElement('div'); main.className = 'rem-main';
+    const title = document.createElement('b'); title.textContent = r.title;
+    const when = document.createElement('span');
+    when.textContent = (late ? 'Overdue · ' : '') + new Date(r.due).toLocaleString('en-GB', {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+    main.append(title, when);
+    const del = document.createElement('button');
+    del.type = 'button'; del.className = 'rem-del'; del.innerHTML = '&times;'; del.setAttribute('aria-label', 'Delete reminder');
+    del.addEventListener('click', () => { reminders = reminders.filter((x) => x.id !== r.id); saveReminders(); renderReminders(); });
+    li.append(check, main, del);
+    remList.append(li);
+  });
+}
+remForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const title = remForm.title.value.trim(), due = new Date(remForm.due.value).getTime();
+  if (!title || Number.isNaN(due)) return;
+  reminders.push({id: Date.now(), title, due, done: false});
+  saveReminders(); renderReminders(); remForm.reset();
+});
+renderReminders();
+
+/* ---------- Live currency slider ----------
+   Data: free daily rates from fawazahmed0/currency-api (no API key).
+   One request per sample date returns USD against every currency, so
+   BDT per 1 unit of X = usd.bdt / usd.x. Results are cached for the day. */
+const CURRENCIES = [
+  {code: 'USD', name: 'US Dollar', color: '#14897c'}, {code: 'GBP', name: 'British Pound', color: '#7c5cff'},
+  {code: 'EUR', name: 'Euro', color: '#e8a13f'}, {code: 'AUD', name: 'Australian Dollar', color: '#e5484d'},
+  {code: 'CAD', name: 'Canadian Dollar', color: '#0ea5e9'}, {code: 'SGD', name: 'Singapore Dollar', color: '#ec4899'},
+  {code: 'AED', name: 'UAE Dirham', color: '#64748b'}, {code: 'JPY', name: 'Japanese Yen', color: '#22c55e'}
+];
+const fxTrack = document.getElementById('fx');
+const fxDots = document.getElementById('fx-dots');
+const fxPrev = document.getElementById('fx-prev');
+const fxNext = document.getElementById('fx-next');
+
+const isoDay = (offset) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - offset); return d.toISOString().slice(0, 10); };
+const fmtDate = (iso) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', {day: 'numeric', month: 'short', timeZone: 'UTC'});
+const fmtRate = (code, v) => v.toFixed(code === 'JPY' ? 3 : 2);
+
+async function fetchDay(version) {
+  const urls = [
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${version}/v1/currencies/usd.json`,
+    `https://${version}.currency-api.pages.dev/v1/currencies/usd.json`
+  ];
+  for (const url of urls) {
+    try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {}
+  }
+  return null;
+}
+
+async function loadRates() {
+  const cacheKey = 'pathway_fx_v1', today = isoDay(0);
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && cached.day === today) return cached.data;
+  } catch (e) {}
+
+  const offsets = [];
+  for (let o = 30; o >= 0; o -= 3) offsets.push(o);
+  const days = await Promise.all(offsets.map((o) => fetchDay(o === 0 ? 'latest' : isoDay(o))));
+  const points = days.filter((d) => d && d.usd && d.usd.bdt);
+  if (points.length < 4) throw new Error('not enough data');
+
+  const data = {dates: points.map((p) => p.date), rates: {}};
+  CURRENCIES.forEach(({code}) => {
+    data.rates[code] = points.map((p) => code === 'USD' ? p.usd.bdt : p.usd.bdt / p.usd[code.toLowerCase()]);
+  });
+  try { localStorage.setItem(cacheKey, JSON.stringify({day: today, data})); } catch (e) {}
+  return data;
+}
+
+function buildSlide({code, name, color}, dates, series) {
+  const W = 200, H = 60, P = 4, n = series.length;
+  const min = Math.min(...series), max = Math.max(...series), span = (max - min) || 1;
+  const X = (i) => i * W / (n - 1);
+  const Y = (v) => H - P - (v - min) / span * (H - 2 * P);
+  const line = series.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ');
+  const now = series[n - 1], chg = (now / series[0] - 1) * 100, rangeText = `${fmtDate(dates[0])} – ${fmtDate(dates[n - 1])}`;
+
+  const el = document.createElement('article');
+  el.className = 'slide';
+  el.style.setProperty('--dot', color);
+  el.innerHTML = `<div class="slide-top"><span class="slide-code"><i></i>${code} <small>${name}</small></span><span class="slide-chg ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(1)}%</span></div>
+    <p class="slide-rate">৳${fmtRate(code, now)}</p>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${code} to BDT, last 30 days">
+      <defs><linearGradient id="g-${code}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".25"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+      <path d="${line} L${W} ${H} L0 ${H} Z" fill="url(#g-${code})"/>
+      <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <line y1="0" y2="${H}" stroke="${color}" stroke-opacity=".4" vector-effect="non-scaling-stroke" visibility="hidden"/>
+    </svg>
+    <div class="slide-foot">${rangeText}</div>`;
+
+  const svg = el.querySelector('svg'), guide = svg.querySelector('line'), foot = el.querySelector('.slide-foot');
+  svg.addEventListener('pointermove', (e) => {
+    const r = svg.getBoundingClientRect();
+    const i = Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left) / r.width * (n - 1))));
+    guide.setAttribute('x1', X(i)); guide.setAttribute('x2', X(i)); guide.setAttribute('visibility', 'visible');
+    foot.textContent = `${fmtDate(dates[i])} · ৳${fmtRate(code, series[i])}`;
+  });
+  svg.addEventListener('pointerleave', () => { guide.setAttribute('visibility', 'hidden'); foot.textContent = rangeText; });
+  return el;
+}
+
+/* Slider controls */
+function slideStep() { const s = fxTrack.querySelector('.slide'); return s ? s.offsetWidth + 12 : 0; }
+function updateSlider() {
+  const max = fxTrack.scrollWidth - fxTrack.clientWidth;
+  fxPrev.disabled = fxTrack.scrollLeft <= 2;
+  fxNext.disabled = fxTrack.scrollLeft >= max - 2;
+  const dots = fxDots.children.length;
+  if (!dots) return;
+  const active = max > 0 ? Math.round(fxTrack.scrollLeft / max * (dots - 1)) : 0;
+  [...fxDots.children].forEach((d, i) => d.setAttribute('aria-current', String(i === active)));
+}
+function buildDots() {
+  fxDots.innerHTML = '';
+  const max = fxTrack.scrollWidth - fxTrack.clientWidth, step = slideStep();
+  const pages = step && max > 0 ? Math.ceil(max / step) + 1 : 1;
+  if (pages < 2) return;
+  for (let p = 0; p < pages; p++) {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.setAttribute('aria-label', `Go to slide ${p + 1}`);
+    dot.addEventListener('click', () => fxTrack.scrollTo({left: max * p / (pages - 1)}));
+    fxDots.append(dot);
+  }
+}
+fxPrev.addEventListener('click', () => fxTrack.scrollBy({left: -slideStep()}));
+fxNext.addEventListener('click', () => fxTrack.scrollBy({left: slideStep()}));
+fxTrack.addEventListener('scroll', updateSlider, {passive: true});
+fxTrack.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { e.preventDefault(); fxNext.click(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); fxPrev.click(); }
+});
+window.addEventListener('resize', () => { buildDots(); updateSlider(); });
+
+async function initFx() {
+  try {
+    const data = await loadRates();
+    fxTrack.innerHTML = '';
+    CURRENCIES.forEach((c) => fxTrack.append(buildSlide(c, data.dates, data.rates[c.code])));
+    document.getElementById('fx-src').textContent = `Daily rates · updated ${fmtDate(data.dates[data.dates.length - 1])}`;
+    buildDots();
+    updateSlider();
+  } catch (error) {
+    fxTrack.innerHTML = '<div class="fx-msg"><p>Could not load live exchange rates. Check your connection and try again.</p><button type="button" id="fx-retry">Try again</button></div>';
+    document.getElementById('fx-retry').addEventListener('click', () => {
+      fxTrack.innerHTML = '<div class="skeleton slide" style="height:150px"></div><div class="skeleton slide" style="height:150px"></div><div class="skeleton slide" style="height:150px"></div>';
+      initFx();
+    });
+    fxDots.innerHTML = '';
+    fxPrev.disabled = fxNext.disabled = true;
+  }
+}
+initFx();
 </script>
 {% endblock %}
