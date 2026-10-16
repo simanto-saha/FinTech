@@ -21,6 +21,9 @@ from django.utils.http import urlencode
 from hashids import Hashids
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from .fx import get_rates, get_countries
 
 from .models import AgentUser, AiAgentConversation, AiAgentQuestion, RegistrationOTP
 
@@ -31,6 +34,16 @@ OTP_RESEND_DELAY = timedelta(seconds=60)
 OTP_MAX_ATTEMPTS = 5
 CONVERSATION_ID_HASH = Hashids(salt=settings.SECRET_KEY, min_length=8)
 
+
+
+@require_GET
+def fx_api(request):
+    d = get_rates()
+    if not d:
+        return JsonResponse({"error": "Exchange rates unavailable"}, status=503)
+    return JsonResponse({**d,
+                         "countries": get_countries(set(d["rates"])),
+                         "methods": settings.TRANSFER_METHODS})
 
 def _conversation_token(conversation_id):
     return CONVERSATION_ID_HASH.encode(conversation_id)
@@ -326,9 +339,9 @@ def _auth_error(request, message, status=400):
 def _send_registration_otp(request, registration, code):
     try:
         sent_count = send_mail(
-            subject='Your Pathway verification code',
+            subject='Your Fundora verification code',
             message=(
-                f'Your Pathway verification code is {code}. '
+                f'Your Fundora verification code is {code}. '
                 'It expires in 10 minutes. If you did not request this, ignore this email.'
             ),
             from_email=None,

@@ -1,84 +1,563 @@
 {% extends "Agent/base.html" %}
 {% block title %}Home{% endblock %}
 {% block head %}<style>
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:56px 0 72px}
-.hero h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:800;margin-bottom:18px}
-.hero p{max-width:46ch;font-size:1.1rem;color:var(--mute);margin-bottom:26px}
+.pw{--r-lg:24px;--r-md:14px;--r-sm:10px;--bad:#b3261e;--sh-1:0 1px 2px rgba(18,38,58,.06),0 8px 24px -12px rgba(18,38,58,.14);--sh-2:0 2px 4px rgba(18,38,58,.05),0 30px 60px -28px rgba(18,38,58,.38)}
+.pw .card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1)}
+.pw .sec{padding:10px 0}
+.pw .sec-head{max-width:62ch;margin-bottom:36px}
+.pw .sec-head h2{font-size:clamp(1.8rem,3.4vw,2.5rem);letter-spacing:-.02em;margin:0 0 10px}
+.pw .sec-head p{margin:0;color:var(--mute)}
+.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic{width:44px;height:44px;border-radius:14px;background:var(--sky);display:grid;place-items:center;color:var(--teal);flex:none}
+
+/* hero */
+.hero{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:64px 0 80px}
+.hero::before{content:"";position:absolute;z-index:-1;right:-8%;top:-4%;width:620px;height:620px;border-radius:50%;background:radial-gradient(closest-side,rgba(20,137,124,.20),rgba(20,137,124,0));pointer-events:none}
+.hero h1{font-size:clamp(2.4rem,5.4vw,4.1rem);font-weight:800;line-height:1.02;letter-spacing:-.035em;margin:0 0 20px}
+.hero p.lead{max-width:46ch;font-size:1.12rem;line-height:1.6;color:var(--mute);margin:0 0 30px}
 .cta{display:flex;gap:12px;flex-wrap:wrap}
-.conv{padding:26px;box-shadow:0 20px 50px -24px rgba(18,38,58,.35)}
-.conv label{font-size:.85rem;color:var(--mute);display:block;margin-bottom:6px}
-.row{display:grid;grid-template-columns:1fr 110px;gap:10px;margin-bottom:16px}
-.conv input,.conv select{width:100%;padding:12px;font:inherit;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
-.out{font:800 2.2rem "Bricolage Grotesque",sans-serif;color:var(--teal)}
-.cmp{margin-top:14px;display:grid;gap:8px}
-.cmp div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:10px;background:var(--paper);font-size:.95rem}
-.cmp .best{background:var(--sky);font-weight:700}
-.sec{padding:64px 0}
-.sec h2{font-size:clamp(1.7rem,3.5vw,2.4rem);margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}
-.grid h3{margin:10px 0 6px;font-size:1.15rem}
-.ico{width:42px;height:42px;border-radius:12px;background:var(--sky);display:grid;place-items:center;font-size:1.3rem}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:30px;border-top:3px solid var(--teal)}
-.steps div{padding:20px 20px 0 0}
-.steps b{display:block;font:700 1.1rem "Bricolage Grotesque",sans-serif;margin-bottom:4px}
-.band{background:var(--ink);color:#fff;border-radius:22px;padding:44px;text-align:center;margin:30px 0 60px}
-.band h2{margin-bottom:16px;color:#fff}
-footer{border-top:1px solid var(--line);padding:26px 0;color:var(--mute);font-size:.9rem}
-@media (max-width:860px){.hero,.grid,.steps{grid-template-columns:1fr}.steps div{padding:16px 0}}
+.pts{list-style:none;padding:26px 0 0;margin:36px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;border-top:1px solid var(--line)}
+.pts li{display:grid;gap:10px;font-weight:600;font-size:.92rem;line-height:1.35}
+
+/* calculator */
+.conv{padding:28px;box-shadow:var(--sh-2);animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.conv label,.pf label{font-size:.8rem;font-weight:600;color:var(--mute);display:block;margin-bottom:6px}
+.fld{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:10px;margin-bottom:6px}
+.conv input,.conv select,.pf input,.pf select{width:100%;min-width:0;padding:13px 14px;font:inherit;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);transition:border-color .15s,background .15s,box-shadow .15s}
+.conv input:hover,.conv select:hover,.pf input:hover,.pf select:hover{border-color:#b9c7d2}
+.conv input:focus-visible,.conv select:focus-visible,.pf input:focus-visible,.pf select:focus-visible,.never{outline:0;border-color:var(--teal);background:#fff;box-shadow:0 0 0 4px rgba(20,137,124,.16)}
+.conv input.amt{font:800 1.45rem "Bricolage Grotesque",sans-serif;color:var(--teal);text-align:right;letter-spacing:-.01em}
+.conv .swap{all:unset;box-sizing:border-box;position:relative;inset:auto;float:none;display:grid;place-items:center;width:42px;height:42px;margin:6px auto;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--teal);cursor:pointer;box-shadow:var(--sh-1);transition:transform .25s,background .15s}
+.conv .swap:hover{background:var(--sky);transform:rotate(180deg)}
+.conv .swap:focus-visible{outline:3px solid rgba(20,137,124,.35);outline-offset:2px}
+.status{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.78rem;color:var(--mute);margin:14px 0}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;font-weight:700;background:var(--sky);color:var(--teal)}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.warn{background:#fff3d6;color:#8a5a00}
+.err{padding:11px 14px;border-radius:12px;background:#fdeaea;color:#8b1a1a;font-size:.88rem;margin-bottom:12px}
+.err button{margin-left:8px;font:inherit;text-decoration:underline;background:none;border:0;color:inherit;cursor:pointer}
+.fine{font-size:.76rem;line-height:1.5;color:var(--mute);margin:14px 0 0}
+
+/* empty state (innerHTML) */
+.empty{display:grid;justify-items:center;gap:8px;padding:26px 18px;border:1px dashed var(--line);border-radius:var(--r-md);color:var(--mute);font-size:.9rem;text-align:center;line-height:1.5}
+.empty .ic{width:40px;height:40px;border-radius:12px}
+
+/* calculator result (innerHTML) */
+.recv{display:grid;gap:2px;padding:18px 18px 16px;border-radius:var(--r-md);background:var(--ink);color:#fff;margin-bottom:12px}
+.recv small{color:#9fb2c1;font-size:.78rem;font-weight:600}
+.recv b{font:800 1.9rem/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.02em;color:#5fe0cf;word-break:break-word}
+.recv span{color:#b4c3d0;font-size:.8rem}
+.sum{margin:0 0 14px;padding:4px 16px;border-radius:var(--r-md);background:var(--paper);display:grid}
+.sum div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;font-size:.88rem;border-bottom:1px solid var(--line)}
+.sum div:last-child{border:0}
+.sum dt{color:var(--mute)}.sum dd{margin:0;font-weight:700;text-align:right}
+.cmp-h{margin:0 0 8px;font:700 .85rem "DM Sans",sans-serif}
+.cmp{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.cmp li{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:10px 14px;border-radius:12px;border:1px solid var(--line);font-size:.88rem;color:var(--mute)}
+.cmp .rk{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 .74rem "DM Sans",sans-serif;background:var(--paper);color:var(--mute)}
+.cmp .vl{font-weight:700;color:var(--ink)}
+.cmp .best{background:var(--sky);border-color:rgba(20,137,124,.35);color:var(--ink);font-weight:700}
+.cmp .best .rk{background:var(--teal);color:#fff}
+
+/* compare cards (innerHTML) */
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
+.opt{padding:28px;position:relative;display:flex;flex-direction:column}
+.opt h3{font-size:1.15rem;margin:0 0 8px;letter-spacing:-.01em}
+.tag{align-self:flex-start;font:600 .72rem "DM Sans",sans-serif;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-bottom:20px}
+.opt .get{display:grid;gap:2px;padding:14px;border-radius:var(--r-md);background:var(--paper);margin-bottom:18px}
+.opt .get small{color:var(--mute);font-size:.76rem;font-weight:600}
+.opt .get b{font:800 1.5rem/1.15 "Bricolage Grotesque",sans-serif;letter-spacing:-.02em;color:var(--teal);word-break:break-word}
+.kv{display:grid;gap:12px;margin:0}
+.kv div{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.kv div:last-child{border:0;padding:0}
+.kv dt{color:var(--mute)}.kv dd{margin:0;font-weight:700;text-align:right}
+.opt.best{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:var(--sh-2);transform:translateY(-8px)}
+.opt.best h3{color:#fff}
+.opt.best .tag{border-color:rgba(255,255,255,.25);color:#b4c3d0}
+.opt.best .get{background:rgba(255,255,255,.08)}
+.opt.best .get small,.opt.best .kv dt{color:#9fb2c1}
+.opt.best .get b{color:#5fe0cf}
+.opt.best .kv div{border-color:rgba(255,255,255,.12)}
+.bv{position:absolute;right:20px;top:20px;font:700 .72rem "DM Sans",sans-serif;padding:4px 11px;border-radius:99px;background:var(--teal);color:#fff}
+.save{grid-column:1/-1;display:flex;gap:10px;align-items:center;padding:14px 18px;border-radius:var(--r-md);background:var(--sky);color:var(--ink);font-size:.9rem;font-weight:600}
+.save .i{color:var(--teal);flex:none}
+
+/* assistant steps */
+#assistant .assistant-steps-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+#assistant .assistant-step{position:relative;margin:0;padding:26px 24px 28px;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,box-shadow .2s}
+#assistant .assistant-step:hover{border-color:var(--teal);box-shadow:var(--sh-2)}
+#assistant .assistant-step-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+#assistant .assistant-step-number{font:800 .95rem "Bricolage Grotesque",sans-serif;color:var(--teal);padding:4px 12px;border-radius:99px;border:1px solid rgba(20,137,124,.3)}
+#assistant .assistant-step h3{margin:0 0 6px;font-size:1.12rem;letter-spacing:-.01em}
+#assistant .assistant-step p{margin:0;line-height:1.55;color:var(--mute)}
+#assistant .assistant-tag{align-self:flex-start;margin-top:16px;padding:4px 11px;border-radius:99px;background:#fff;border:1px solid rgba(20,137,124,.3);color:var(--teal);font:700 .76rem "DM Sans",sans-serif}
+#assistant .assistant-step.is-safe{background:var(--sky);border-color:rgba(20,137,124,.35)}
+#assistant .assistant-step.is-result{background:var(--ink);border-color:var(--ink)}
+#assistant .assistant-step.is-result h3{color:#fff}
+#assistant .assistant-step.is-result p{color:#b4c3d0}
+#assistant .assistant-step.is-result .assistant-step-number{background:#fff;color:var(--ink);border-color:#fff}
+#assistant .assistant-step.is-result .ic{background:rgba(255,255,255,.1);color:#fff}
+
+/* planner form */
+.planner{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.pf{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pf .full{grid-column:1/-1}
+.pf h3{grid-column:1/-1;margin:0;font-size:1.05rem}
+.pf .grp{grid-column:1/-1;margin:10px 0 -4px;padding-top:16px;border-top:1px solid var(--line);font:700 .9rem "DM Sans",sans-serif;color:var(--ink)}
+.pf h3+.grp{border:0;padding-top:0;margin-top:0}
+
+/* planner result (innerHTML) */
+.res{padding:28px;display:grid;gap:18px;position:sticky;top:24px}
+.res h3{margin:0;font-size:1.05rem}
+.verdict{display:flex;gap:12px;align-items:flex-start;padding:16px;border-radius:var(--r-md);background:var(--sky);border:1px solid rgba(20,137,124,.3)}
+.verdict .ic{width:36px;height:36px;border-radius:11px;background:#fff}
+.verdict b{display:block;font:800 1.05rem "Bricolage Grotesque",sans-serif;margin-bottom:2px}
+.verdict span{font-size:.86rem;line-height:1.45;color:var(--mute)}
+.verdict.gap{background:#fdeaea;border-color:rgba(179,38,30,.25)}
+.verdict.gap .ic{color:var(--bad)}
+.bar{display:grid;gap:8px}
+.bar-top{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;color:var(--mute)}
+.bar-top b{color:var(--ink)}
+.track{height:10px;border-radius:99px;background:var(--paper);border:1px solid var(--line);overflow:hidden}
+.fill{height:100%;border-radius:99px;background:var(--teal);transition:width .4s ease}
+.fill.low{background:var(--bad)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{padding:14px;border-radius:var(--r-md);background:var(--paper)}
+.stat small{display:block;color:var(--mute);font-size:.76rem;line-height:1.35}
+.stat b{display:block;margin-top:4px;font:800 1.15rem "Bricolage Grotesque",sans-serif;word-break:break-word}
+.stat em{display:block;margin-top:2px;font-style:normal;font-size:.74rem;color:var(--mute)}
+.stat.gap{background:#fdeaea}.stat.gap b{color:var(--bad)}
+.stat.ok{background:var(--sky)}.stat.ok b{color:var(--teal)}
+.sched{list-style:none;margin:0;padding:0;display:grid;gap:0;position:relative}
+.sched::before{content:"";position:absolute;left:15px;top:18px;bottom:18px;width:2px;background:var(--line)}
+.sched li{position:relative;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:start;padding:10px 0}
+.sched .dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid var(--teal);color:var(--teal);z-index:1}
+.sched .dot .i{width:15px;height:15px}
+.sched strong{display:block;font-size:.92rem}
+.sched small{display:block;margin-top:2px;color:var(--mute);font-size:.78rem;line-height:1.4}
+.sched .amt{font:800 1rem "Bricolage Grotesque",sans-serif;text-align:right;white-space:nowrap}
+.sched .amt small{font:500 .74rem "DM Sans",sans-serif}
+
+/* simulation (innerHTML) */
+.sim{padding:16px;border-radius:var(--r-md);background:var(--sky);border:1px solid rgba(20,137,124,.25);display:grid;gap:12px;font-size:.9rem}
+.sim label{display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin:0}
+.sim input{width:auto;margin-top:3px;accent-color:var(--teal)}
+.simlog{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.simlog li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:.86rem;line-height:1.4;animation:rise .35s both}
+.simlog .i{width:18px;height:18px;color:var(--teal);flex:none;margin-top:1px}
+.simlog li.done{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+.simlog li.done .i{color:#fff}
+.simlog small{display:block;font-weight:500;opacity:.8}
+.sim .simgo{all:unset;box-sizing:border-box;position:static;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;border-radius:12px;background:var(--teal);color:#fff;font:700 .95rem "DM Sans",sans-serif;text-align:center;cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s}
+.sim .simgo:hover:not([disabled]){background:#0f7a6f;transform:translateY(-1px);box-shadow:0 8px 18px -8px rgba(20,137,124,.6)}
+.sim .simgo:focus-visible{outline:3px solid rgba(20,137,124,.35);outline-offset:2px}
+.sim .simgo[disabled]{opacity:.45;cursor:not-allowed}
+
+/* how it works */
+.tl{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;position:relative}
+.tl::before{content:"";position:absolute;left:21px;right:0;top:20px;height:2px;background:repeating-linear-gradient(90deg,var(--teal) 0 8px,transparent 8px 16px);opacity:.4}
+.tl div{position:relative;padding-top:60px}
+.tl i{position:absolute;top:0;left:0;width:42px;height:42px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font:800 1rem "Bricolage Grotesque",sans-serif;font-style:normal;box-shadow:0 0 0 6px var(--paper,#fff)}
+.tl b{display:block;font:700 1.12rem "Bricolage Grotesque",sans-serif;margin-bottom:6px}
+.tl span{line-height:1.55}
+
+/* benefits */
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.grid .card{padding:28px;display:flex;flex-direction:column;gap:6px;grid-column:span 2;transition:border-color .2s}
+.grid .card:hover{border-color:var(--teal)}
+.grid .card:nth-child(1){grid-column:span 4;background:linear-gradient(135deg,var(--sky),#fff 70%)}
+.grid .card:nth-child(4){grid-column:span 4}
+.grid .card:nth-child(5),.grid .card:nth-child(6){grid-column:span 3}
+.grid h3{margin:14px 0 0;font-size:1.12rem;letter-spacing:-.01em}
+.grid p{margin:0;color:var(--mute);line-height:1.55}
+
+/* searchable country picker */
+.pw .cs-native{display:none}
+.cs{position:relative;min-width:0}
+.pw .cs .cs-btn{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s}
+.pw .cs .cs-btn span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pw .cs .cs-btn .i{width:16px;height:16px;color:var(--mute);flex:none;transition:transform .2s}
+.pw .cs .cs-btn:hover{border-color:#b9c7d2}
+.pw .cs .cs-btn:focus-visible,.pw .cs .cs-btn[aria-expanded=true]{border-color:var(--teal);background:#fff;box-shadow:0 0 0 4px rgba(20,137,124,.16)}
+.pw .cs .cs-btn[aria-expanded=true] .i{transform:rotate(180deg)}
+.cs-pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:max(100%,290px);padding:8px;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-2)}
+.cs-pop.end{left:auto;right:0}
+.pw .cs-q{width:100%;box-sizing:border-box;padding:10px 12px;font:inherit;font-size:.9rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+.cs-list{list-style:none;margin:8px 0 0;padding:0;max-height:240px;overflow:auto;overscroll-behavior:contain}
+.cs-list li{padding:9px 10px;border-radius:10px;font-size:.9rem;cursor:pointer;color:var(--ink)}
+.cs-list li.act{background:var(--paper)}
+.cs-list li[aria-selected=true]{background:var(--sky);color:var(--teal);font-weight:700}
+.cs-list li.none{color:var(--mute);cursor:default;text-align:center}
+
+/* responsive */
+@media(max-width:980px){.opts{grid-template-columns:1fr}.opt.best{transform:none}.planner{grid-template-columns:1fr}.res{position:static}
+  #assistant .assistant-steps-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid{grid-template-columns:repeat(2,1fr)}.grid .card,.grid .card:nth-child(n){grid-column:span 1}}
+@media(max-width:860px){.hero{grid-template-columns:1fr;gap:40px;padding:40px 0 56px}.hero::before{right:-30%}}
+@media(max-width:640px){.pw .sec{padding:52px 0}.pts{grid-template-columns:1fr}.pts li{display:flex;align-items:center;gap:12px}
+  #assistant .assistant-steps-grid,.grid,.pf,.stats{grid-template-columns:1fr}.grid .card,.grid .card:nth-child(n){grid-column:auto}
+  .fld{grid-template-columns:1fr}.conv input.amt{text-align:left}
+  .tl{grid-template-columns:1fr;gap:6px}.tl::before{left:20px;right:auto;top:0;bottom:0;width:2px;height:auto;background:var(--teal)}
+  .tl div{padding:0 0 24px 62px}}
+@media(prefers-reduced-motion:reduce){.conv,.simlog li{animation:none}.conv .swap,.fill,#assistant .assistant-step,.grid .card{transition:none}.conv .swap:hover{transform:none}}
 </style>{% endblock %}
+
 {% block content %}
-<div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
+<symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></symbol>
+<symbol id="i-cmp" viewBox="0 0 24 24"><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-9"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
+</defs></svg>
+
+<div class="wrap pw">
 
 <section class="hero">
   <div>
-    <h1>Pay tuition and manage money abroad without losing sleep.</h1>
-    <p>Pathway compares transfer fees, tracks your visa-safe budget, and reminds you before every fee deadline, in one place for students studying across borders.</p>
-    <div class="cta"><button class="btn" type="button" data-open-modal="register-modal">Start free</button><a class="btn ghost" href="#how">See how it works</a></div>
+    <h1>Fundora AI Student Money, Simplified.</h1>
+    <p>Your AI-powered companion for smarter budgeting,
+    tuition payments, and global money transfers.</p>
+    <div class="cta">
+      <a class="btn" href="#planner">Plan my payments</a>
+      {% if user.is_authenticated %}
+        <a class="btn ghost" href="{% url 'dashboard' %}">Explore how AI Works</a>
+      {% else %}
+        <button class="btn ghost" type="button" data-open-modal="login-modal" data-login-notice="Please log in first to access the AI Agent.">Explore how AI Works</button>
+      {% endif %}
+    </div>
+    <ul class="pts">
+      <li><span class="ic"><svg class="i"><use href="#i-cmp"/></svg></span>Compare transfer costs</li>
+      <li><span class="ic"><svg class="i"><use href="#i-cal"/></svg></span>Never miss a tuition deadline</li>
+      <li><span class="ic"><svg class="i"><use href="#i-wallet"/></svg></span>Plan your monthly budget</li>
+    </ul>
   </div>
-  <div class="card conv" aria-label="Transfer cost calculator">
-    <label for="amt">You send from Bangladesh</label>
-    <div class="row"><input id="amt" type="number" value="500000" min="1"><input value="BDT" disabled aria-label="From currency"></div>
-    <label for="cur">Recipient gets</label>
-    <div class="row"><div class="out" id="out">–</div>
-      <select id="cur"><option value="GBP">GBP</option><option value="USD">USD</option><option value="CAD">CAD</option><option value="AUD">AUD</option></select></div>
-    <div class="cmp" id="cmp"></div>
-    <p class="muted" style="font-size:.78rem;margin-top:12px">Sample rates for demo only. Connect live rates before launch.</p>
+
+  <div class="card conv" id="calc" data-api="{% url 'fx_api' %}" aria-label="Currency and transfer cost calculator">
+    <div id="calcErr" class="err" role="alert" hidden></div>
+    <label for="fromC">Sending country</label>
+    <div class="fld">
+      <select id="fromC" data-country="from" aria-label="Sending country"></select>
+      <input id="amtF" class="amt" type="number" inputmode="decimal" min="0" step="any" value="500000" aria-label="Amount you send">
+    </div>
+    <button class="swap" id="swapBtn" type="button" aria-label="Swap sending and receiving countries"><svg class="i"><use href="#i-swap"/></svg></button>
+    <label for="toC">Receiving country</label>
+    <div class="fld">
+      <select id="toC" data-country="to" aria-label="Receiving country"></select>
+      <input id="amtT" class="amt" type="number" inputmode="decimal" min="0" step="any" aria-label="Amount recipient gets">
+    </div>
+    <div id="calcOut" aria-live="polite"></div>
+    <p class="fine">This is a rate estimate and transfer simulation. It does not move real money.</p>
   </div>
 </section>
 
-<section class="sec" id="features">
-  <h2>Everything a student needs for money</h2>
-  <p class="muted">Built around tuition, rent, and the rules of your visa.</p>
-  <div class="grid">
-    <div class="card"><div class="ico">💱</div><h3>Cheapest transfer finder</h3><p class="muted">See what each provider really delivers after fees and exchange margin.</p></div>
-    <div class="card"><div class="ico">📅</div><h3>Deadline reminders</h3><p class="muted">Tuition, visa, and insurance dates with alerts 14, 7, and 1 day ahead.</p></div>
-    <div class="card"><div class="ico">📊</div><h3>Budget in two currencies</h3><p class="muted">Track spending in your local currency and your home currency side by side.</p></div>
-    <div class="card"><div class="ico">🎓</div><h3>Scholarship and loan tracker</h3><p class="muted">Keep every award, installment, and repayment date in one list.</p></div>
-    <div class="card"><div class="ico">🛡️</div><h3>Proof of funds</h3><p class="muted">Download a bank-statement summary for visa and university checks.</p></div>
-    <div class="card"><div class="ico">💬</div><h3>Ask the assistant</h3><p class="muted">Ask "Can I afford a flat near campus?" and get an answer from your own numbers.</p></div>
+<section class="sec" id="compare">
+  <div class="sec-head"><h2>Compare Transfer Options</h2>
+  <p class="muted">Same amount, three methods. Fees and margins below are simulated assumptions until real provider data is connected.</p></div>
+  <div class="opts" id="opts"></div>
+</section>
+
+<section class="sec" id="assistant">
+  <div class="sec-head"><h2>Meet Your AI Remittance Planner</h2>
+  <p class="muted">From your financial needs to a smarter international payment plan.</p></div>
+  <ol class="assistant-steps-grid">
+    <li class="card assistant-step"><div class="assistant-step-head"><span class="assistant-step-number" aria-hidden="true">01</span><span class="ic"><svg class="i"><use href="#i-user"/></svg></span></div>
+      <h3>Understand Your Needs</h3><p>Collects your requirements, tuition deadlines, destination country and available budget.</p></li>
+    <li class="card assistant-step"><div class="assistant-step-head"><span class="assistant-step-number" aria-hidden="true">02</span><span class="ic"><svg class="i"><use href="#i-calc"/></svg></span></div>
+      <h3>Calculate Currency Requirements</h3><p>Converts your currency and works out the amount needed to meet your payment target.</p></li>
+    <li class="card assistant-step"><div class="assistant-step-head"><span class="assistant-step-number" aria-hidden="true">03</span><span class="ic"><svg class="i"><use href="#i-cmp"/></svg></span></div>
+      <h3>Compare Transfer Options</h3><p>Compares exchange rates, transfer fees and estimated recipient amounts.</p></li>
+    <li class="card assistant-step"><div class="assistant-step-head"><span class="assistant-step-number" aria-hidden="true">04</span><span class="ic"><svg class="i"><use href="#i-cal"/></svg></span></div>
+      <h3>Build a Remittance Plan</h3><p>Plans payments around tuition, monthly living costs, deadlines and your budget.</p></li>
+    <li class="card assistant-step is-safe"><div class="assistant-step-head"><span class="assistant-step-number" aria-hidden="true">05</span><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span></div>
+      <h3>Simulate the Transfer</h3><p>With your consent, runs a simulated transfer. No real money moves.</p><span class="assistant-tag">Simulation only</span></li>
+    <li class="card assistant-step is-result"><div class="assistant-step-head"><span class="assistant-step-number" aria-hidden="true">06</span><span class="ic"><svg class="i"><use href="#i-chart"/></svg></span></div>
+      <h3>Show the Final Results</h3><p>Shows estimated total cost, potential savings, chosen method and simulated payment status.</p></li>
+  </ol>
+</section>
+
+<section class="sec" id="planner">
+  <div class="sec-head"><h2>Student Budget Planner</h2>
+  <p class="muted">Costs go in the receiving currency. Savings and budget go in the sending currency. Everything is converted before it is added.</p></div>
+  <div class="planner">
+    <form class="card pf" id="pForm" novalidate>
+      <h3>Your numbers</h3>
+      <div class="grp">Route</div>
+      <div><label for="pF">Sending country</label><select id="pF" data-country="from"></select></div>
+      <div><label for="pT">Receiving country</label><select id="pT" data-country="to"></select></div>
+      <div class="grp">Tuition</div>
+      <div><label for="pTuition">Tuition fee (<span class="cT">-</span>)</label><input id="pTuition" type="number" min="0" step="any" inputmode="decimal" value="12000"></div>
+      <div><label for="pDeadline">Tuition deadline</label><input id="pDeadline" type="date"></div>
+      <div class="grp">Monthly costs</div>
+      <div><label for="pAcc">Accommodation (<span class="cT">-</span>)</label><input id="pAcc" type="number" min="0" step="any" inputmode="decimal" value="600"></div>
+      <div><label for="pFood">Food and transport (<span class="cT">-</span>)</label><input id="pFood" type="number" min="0" step="any" inputmode="decimal" value="300"></div>
+      <div><label for="pOther">Other costs (<span class="cT">-</span>)</label><input id="pOther" type="number" min="0" step="any" inputmode="decimal" value="100"></div>
+      <div><label for="pMonths">Planning period</label>
+        <select id="pMonths"><option value="3">3 months</option><option value="6">6 months</option><option value="9">9 months</option><option value="12" selected>12 months</option><option value="18">18 months</option><option value="24">24 months</option></select></div>
+      <div class="grp">Your funds</div>
+      <div><label for="pSav">Current savings (<span class="cF">-</span>)</label><input id="pSav" type="number" min="0" step="any" inputmode="decimal" value="300000"></div>
+      <div><label for="pBud">Monthly budget (<span class="cF">-</span>)</label><input id="pBud" type="number" min="0" step="any" inputmode="decimal" value="60000"></div>
+      <div class="full err" id="pErr" role="alert" hidden></div>
+    </form>
+    <div class="card res" id="pOut" aria-live="polite"></div>
   </div>
 </section>
 
 <section class="sec" id="how">
-  <h2>Set up in three steps</h2>
-  <div class="steps">
-    <div><b>1. Add your university</b><span class="muted">Choose your country, course, and fee schedule.</span></div>
-    <div><b>2. Link your accounts</b><span class="muted">Connect bank and wallet balances in read-only mode.</span></div>
-    <div><b>3. Get your plan</b><span class="muted">Receive a monthly budget and the best transfer time.</span></div>
+  <div class="sec-head"><h2>How It Works</h2></div>
+  <div class="tl">
+    <div><i>1</i><b>Enter your details</b><span class="muted">Select your countries and enter your financial requirements.</span></div>
+    <div><i>2</i><b>Get your plan</b><span class="muted">Compare transfer costs and generate an AI-powered payment plan.</span></div>
+    <div><i>3</i><b>Review and simulate</b><span class="muted">Review the plan and authorize a simulated transfer.</span></div>
   </div>
 </section>
 
+<section class="sec" id="benefits">
+  <div class="sec-head"><h2>Built for Planning, Not Guesswork</h2>
+  <p class="muted">Fundora helps you plan and simulate transfers. It does not process real payments or connect to bank accounts.</p></div>
+  <div class="grid">
+    <div class="card"><span class="ic"><svg class="i"><use href="#i-cmp"/></svg></span><h3>Transparent cost comparison</h3><p>See rate, fee and received amount for every method.</p></div>
+    <div class="card"><span class="ic"><svg class="i"><use href="#i-cal"/></svg></span><h3>Tuition deadline planning</h3><p>Know when each payment should leave your account.</p></div>
+    <div class="card"><span class="ic"><svg class="i"><use href="#i-wallet"/></svg></span><h3>Monthly living costs</h3><p>Rent, food and transport in one monthly figure.</p></div>
+    <div class="card"><span class="ic"><svg class="i"><use href="#i-globe"/></svg></span><h3>Multi-currency support</h3><p>Pick any supported sending and receiving country.</p></div>
+    <div class="card"><span class="ic"><svg class="i"><use href="#i-tag"/></svg></span><h3>Estimated savings</h3><p>See how much the best method saves against the rest.</p></div>
+    <div class="card"><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span><h3>Consent-based simulation</h3><p>Nothing runs until you agree, and no money moves.</p></div>
+  </div>
+</section>
 
 </div>
 {% endblock %}
+
 {% block scripts %}<script>
-const rate={GBP:.0066,USD:.0083,CAD:.0114,AUD:.0127};
-const prov=[["Pathway partner",.0045,0],["Bank wire",.02,25],["Cash agent",.012,10]];
-function calc(){
-  const a=+document.getElementById("amt").value||0,c=document.getElementById("cur").value,r=rate[c];
-  const res=prov.map(([n,m,f])=>[n,Math.max(0,(a*(1-m)-f*120)*r)]);
-  document.getElementById("out").textContent=res[0][1].toLocaleString(undefined,{maximumFractionDigits:0});
-  document.getElementById("cmp").innerHTML=res.map((x,i)=>`<div class="${i?'':'best'}"><span>${x[0]}</span><span>${x[1].toLocaleString(undefined,{maximumFractionDigits:0})} ${c}</span></div>`).join("");
-}
-document.getElementById("amt").oninput=calc;document.getElementById("cur").onchange=calc;calc();
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const API = $("#calc").dataset.api;
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const S = { from: "BD", to: "GB", mode: "send", val: 500000 };
+  let D = null, R = {}, C = {};
+
+  const ico = id => `<svg class="i" aria-hidden="true"><use href="#${id}"/></svg>`;
+  const empty = (msg, id = "i-info") => `<div class="empty"><span class="ic">${ico(id)}</span><span>${msg}</span></div>`;
+  const digits = c => { try { return new Intl.NumberFormat(undefined,{style:"currency",currency:c}).resolvedOptions().maximumFractionDigits; } catch { return 2; } };
+  const money = (v, c) => { try { return new Intl.NumberFormat(undefined,{style:"currency",currency:c,currencyDisplay:"narrowSymbol"}).format(v); } catch { return v.toFixed(2) + " " + c; } };
+  const cur = k => C[S[k]].currency;
+  const pct = v => (v * 100).toFixed(2).replace(/\.?0+$/, "") + "%";
+  const EMPTY_CMP = empty("Enter an amount in the calculator to see a comparison.", "i-calc");
+  const wide = h => h.replace('class="empty"', 'class="empty" style="grid-column:1/-1"');
+
+  /* ---------- core math ---------- */
+  function quote(f, t, mode, val) {
+    const rate = R[t] / R[f];
+    return D.methods.map(m => {
+      const eff = rate * (1 - m.margin), flat = m.fee_flat_usd * R[f];
+      let sent, recv, fee;
+      if (mode === "send") { sent = val; fee = Math.min(sent, sent * m.fee_pct + flat); recv = (sent - fee) * eff; }
+      else { recv = val; const net = recv / eff; sent = (net + flat) / (1 - m.fee_pct); fee = sent - net; }
+      return { m, rate, eff, fee, sent, recv };
+    }).sort((a, b) => mode === "send" ? b.recv - a.recv : a.sent - b.sent);
+  }
+
+  /* ---------- load ---------- */
+  async function load() {
+    $("#calcOut").innerHTML = empty("Loading exchange rates...", "i-globe");
+    $("#pOut").innerHTML = empty("Loading exchange rates...", "i-globe");
+    $("#opts").innerHTML = wide(EMPTY_CMP);
+    try {
+      const r = await fetch(API, { headers: { Accept: "application/json" } });
+      if (!r.ok) throw new Error();
+      D = await r.json(); R = D.rates; C = Object.fromEntries(D.countries.map(c => [c.code, c]));
+      if (!C[S.from]) S.from = D.countries[0].code;
+      if (!C[S.to]) S.to = D.countries[1].code;
+      $("#calcErr").hidden = true;
+      fillSelects(); render(); plan();
+    } catch {
+      D = null;
+      const e = $("#calcErr"); e.hidden = false;
+      e.innerHTML = 'Could not load exchange rates. <button type="button" id="retry">Retry</button>';
+      $("#retry").onclick = load;
+      $("#calcOut").innerHTML = empty("No rates available right now. Check your connection and retry.", "i-alert");
+      $("#pOut").innerHTML = $("#calcOut").innerHTML;
+    }
+  }
+  function fillSelects() {
+    const opts = D.countries.map(c => `<option value="${esc(c.code)}">${c.flag} ${esc(c.name)} (${esc(c.currency)})</option>`).join("");
+    $$("select[data-country]").forEach(s => { s.innerHTML = opts; s.value = S[s.dataset.country]; });
+  }
+
+  /* ---------- calculator + comparison ---------- */
+  function render() {
+    if (!D) return;
+    refreshCS();
+    const f = cur("from"), t = cur("to"), out = $("#calcOut"), opts = $("#opts");
+    $$(".cF").forEach(e => e.textContent = f); $$(".cT").forEach(e => e.textContent = t);
+    if (f === t) { out.innerHTML = empty("Sending and receiving currencies are the same. Pick a different country.", "i-swap"); opts.innerHTML = wide(out.innerHTML); return; }
+    if (!R[f] || !R[t]) { out.innerHTML = empty("This currency pair is not supported.", "i-alert"); opts.innerHTML = wide(out.innerHTML); return; }
+    if (!(S.val > 0)) { out.innerHTML = empty("Enter an amount greater than zero.", "i-calc"); opts.innerHTML = wide(EMPTY_CMP);
+      (S.mode === "send" ? $("#amtT") : $("#amtF")).value = ""; return; }
+    const rows = quote(f, t, S.mode, S.val), b = rows[0], worst = rows[rows.length - 1];
+    if (S.mode === "send") $("#amtT").value = b.recv.toFixed(digits(t));
+    else $("#amtF").value = b.sent.toFixed(digits(f));
+    const mid = R[t] / R[f];
+
+    out.innerHTML = `
+      <dl class="sum">
+        <div><dt>Exchange rate</dt><dd>1 ${esc(f)} = ${mid.toPrecision(5)} ${esc(t)}</dd></div>
+        <div><dt>Rate margin (${esc(b.m.name)})</dt><dd>${pct(b.m.margin)}</dd></div>
+        <div><dt>Estimated fee</dt><dd>${money(b.fee, f)}</dd></div>
+        <div><dt>Total sender cost</dt><dd>${money(b.sent, f)}</dd></div>
+      </dl>`;
+
+    const saveRecv = S.mode === "send" ? b.recv - worst.recv : 0, saveSent = S.mode === "recv" ? worst.sent - b.sent : 0;
+    const note = saveRecv > 0 ? `Best option gives you about ${money(saveRecv, t)} more than the lowest option.`
+      : saveSent > 0 ? `Best option costs about ${money(saveSent, f)} less than the highest option.` : "";
+    opts.innerHTML = rows.map((r, i) => `
+      <article class="card opt ${i ? "" : "best"}">
+        ${i ? "" : '<span class="bv">Best value</span>'}
+        <h3>${esc(r.m.name)}</h3><span class="tag">Simulated assumptions</span>
+        <div class="get"><small>${S.mode === "send" ? "Recipient gets" : "Recipient gets (fixed)"}</small><b>${money(r.recv, t)}</b></div>
+        <dl class="kv">
+          <div><dt>Exchange rate</dt><dd>1 ${esc(f)} = ${r.eff.toPrecision(5)} ${esc(t)}</dd></div>
+          <div><dt>Transfer fee</dt><dd>${money(r.fee, f)}</dd></div>
+          <div><dt>Total sender cost</dt><dd>${money(r.sent, f)}</dd></div>
+        </dl>
+      </article>`).join("") +
+      (note ? `<p class="save">${ico("i-tag")}<span>${note}</span></p>` : "") +
+      `<p class="fine" style="grid-column:1/-1">Delivery times are not shown because no verified data is connected.</p>`;
+  }
+
+  /* ---------- budget planner ---------- */
+  let planData = null;
+  function plan() {
+    if (!D) return;
+    const f = cur("from"), t = cur("to"), out = $("#pOut"), err = $("#pErr");
+    const g = id => { const v = $(id).value; return v === "" ? 0 : +v; };
+    const vals = ["#pTuition","#pAcc","#pFood","#pOther","#pSav","#pBud"].map(g);
+    err.hidden = true; planData = null;
+    if (vals.some(v => !isFinite(v) || v < 0)) { err.hidden = false; err.textContent = "Amounts must be zero or more."; out.innerHTML = empty("Fix the amounts to see your plan.", "i-alert"); return; }
+    if (f === t) { out.innerHTML = empty("Sending and receiving currencies are the same. Pick a different country.", "i-swap"); return; }
+    const [T, acc, food, oth, sav, bud] = vals, n = +$("#pMonths").value, M = acc + food + oth;
+    if (T + M === 0) { out.innerHTML = empty("Enter your tuition and monthly costs to see a plan.", "i-wallet"); return; }
+    const dl = $("#pDeadline").value ? new Date($("#pDeadline").value + "T00:00:00") : null;
+    if (dl && dl < new Date(new Date().toDateString())) { err.hidden = false; err.textContent = "The tuition deadline is in the past."; }
+    const qT = T > 0 ? quote(f, t, "recv", T)[0] : null, qM = M > 0 ? quote(f, t, "recv", M)[0] : null;
+    const send = (qT ? qT.sent : 0) + (qM ? qM.sent * n : 0);
+    const need = T + M * n, avail = sav + bud * n, gap = Math.max(0, send - avail);
+    const availRecv = avail * (R[t] / R[f]);
+    const funded = send > 0 ? Math.min(100, Math.round(avail / send * 100)) : 100;
+    const sendBy = dl ? new Date(dl.getTime() - 7 * 864e5).toLocaleDateString(undefined,{dateStyle:"medium"}) : "before your deadline";
+    planData = { send, qT, qM, n, f, t };
+
+    out.innerHTML = `
+      <h3>Your plan</h3>
+      <div class="verdict ${gap ? "gap" : ""}">
+        <span class="ic">${ico(gap ? "i-alert" : "i-check")}</span>
+        <div><b>${gap ? "Short by " + money(gap, f) : "You are fully funded"}</b>
+        <span>${gap ? "Your savings and monthly budget do not cover the full amount over " + n + " months." : "Your savings and monthly budget cover the full amount over " + n + " months."}</span></div>
+      </div>
+      <div class="bar">
+        <div class="bar-top"><span>Funding coverage</span><b>${funded}%</b></div>
+        <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${funded}"><div class="fill ${gap ? "low" : ""}" style="width:${funded}%"></div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><small>Total tuition</small><b>${money(T, t)}</b></div>
+        <div class="stat"><small>Monthly living costs</small><b>${money(M, t)}</b></div>
+        <div class="stat"><small>Total needed (${n} mo)</small><b>${money(need, t)}</b></div>
+        <div class="stat"><small>Available funds</small><b>${money(avail, f)}</b><em>about ${money(availRecv, t)}</em></div>
+        <div class="stat ${gap ? "gap" : "ok"}"><small>Funding gap</small><b>${money(gap, f)}</b></div>
+        <div class="stat"><small>Total to send</small><b>${money(send, f)}</b></div>
+      </div>
+      <h3>Suggested remittance schedule</h3>
+      <ol class="sched">
+        ${qT ? `<li><span class="dot">${ico("i-cal")}</span><div><strong>Tuition payment</strong><small>Send by ${sendBy} via ${esc(qT.m.name)}</small></div><div class="amt">${money(qT.sent, f)}<small><br>${money(T, t)} received</small></div></li>` : ""}
+        ${qM ? `<li><span class="dot">${ico("i-wallet")}</span><div><strong>Monthly living costs</strong><small>Every month for ${n} months via ${esc(qM.m.name)}</small></div><div class="amt">${money(qM.sent, f)}<small><br>per month</small></div></li>` : ""}
+      </ol>
+      <p class="fine">Planning estimate only. The 7-day send-by buffer is an assumption, and fees are simulated.</p>
+      <div class="sim">
+        <label><input type="checkbox" id="consent"> I agree to run a simulated transfer. No real money will move.</label>
+        <button class="simgo" type="button" id="simBtn" disabled>${ico("i-send")}Run simulation</button>
+        <ol class="simlog" id="simLog" hidden></ol>
+      </div>`;
+    $("#consent").onchange = e => { $("#simBtn").disabled = !e.target.checked; };
+    $("#simBtn").onclick = simulate;
+  }
+
+  function simulate() {   // front-end only: no request is sent, no payment is made
+    if (!planData || !$("#consent").checked) return;
+    const p = planData, log = $("#simLog"), now = new Date().toLocaleString();
+    log.hidden = false;
+    log.innerHTML = `
+      <li>${ico("i-check")}<span>Plan created<small>${money(p.send, p.f)} total to send</small></span></li>
+      <li>${ico("i-check")}<span>Method selected<small>${esc((p.qT || p.qM).m.name)}</small></span></li>
+      <li class="done">${ico("i-send")}<span>Simulated payment: Completed<small>${now}. No real money moved.</small></span></li>`;
+    $("#simBtn").disabled = true;
+    $("#consent").disabled = true;
+  }
+
+  /* ---------- searchable country picker ---------- */
+  function cs(sel) {
+    if (sel._cs) return sel._cs;
+    const w = document.createElement("div"); w.className = "cs";
+    const lab = sel.id && document.querySelector(`label[for="${sel.id}"]`);
+    w.innerHTML = `<button type="button" class="cs-btn" aria-haspopup="listbox" aria-expanded="false"${lab ? ` aria-label="${esc(lab.textContent)}"` : ""}><span></span>${ico("i-chev")}</button>
+      <div class="cs-pop" hidden><input class="cs-q" type="search" placeholder="Search country or currency" autocomplete="off" aria-label="Search countries"><ul class="cs-list" role="listbox"></ul></div>`;
+    sel.after(w); sel.classList.add("cs-native"); sel.tabIndex = -1; sel._cs = w;
+    const btn = w.querySelector(".cs-btn"), pop = w.querySelector(".cs-pop"), q = w.querySelector(".cs-q"), ul = w.querySelector(".cs-list");
+    let act = 0, items = [];
+    const mark = () => { [...ul.children].forEach((li, i) => li.classList.toggle("act", i === act)); ul.children[act] && ul.children[act].scrollIntoView({ block: "nearest" }); };
+    const draw = () => {
+      const k = q.value.trim().toLowerCase();
+      items = [...sel.options].filter(o => !k || o.text.toLowerCase().includes(k) || o.value.toLowerCase().includes(k));
+      act = k ? 0 : Math.max(0, items.findIndex(o => o.value === sel.value));
+      ul.innerHTML = items.length
+        ? items.map(o => `<li role="option" data-v="${esc(o.value)}" aria-selected="${o.value === sel.value}">${esc(o.text)}</li>`).join("")
+        : '<li class="none">No country found</li>';
+      mark();
+    };
+    const close = f => { pop.hidden = true; btn.setAttribute("aria-expanded", "false"); if (f) btn.focus(); };
+    const open = () => {
+      pop.hidden = false; pop.classList.remove("end"); btn.setAttribute("aria-expanded", "true");
+      q.value = ""; draw();
+      if (pop.getBoundingClientRect().right > innerWidth - 8) pop.classList.add("end");
+      q.focus({ preventScroll: true });
+    };
+    const pick = o => { if (!o) return; sel.value = o.value; sel.dispatchEvent(new Event("change")); close(true); };
+    btn.addEventListener("click", () => pop.hidden ? open() : close());
+    q.addEventListener("input", draw);
+    q.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown") { e.preventDefault(); act = Math.min(items.length - 1, act + 1); mark(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); act = Math.max(0, act - 1); mark(); }
+      else if (e.key === "Enter") { e.preventDefault(); pick(items[act]); }
+      else if (e.key === "Escape") { e.preventDefault(); close(true); }
+      else if (e.key === "Tab") close();
+    });
+    ul.addEventListener("mousedown", e => e.preventDefault());
+    ul.addEventListener("click", e => { const li = e.target.closest("li[data-v]"); if (li) pick(items.find(o => o.value === li.dataset.v)); });
+    document.addEventListener("click", e => { if (!pop.hidden && !w.contains(e.target)) close(); });
+    w.refresh = () => { btn.firstElementChild.textContent = sel.selectedOptions[0] ? sel.selectedOptions[0].text : "Select country"; };
+    return w;
+  }
+  const refreshCS = () => $$("select[data-country]").forEach(s => cs(s).refresh());
+
+  /* ---------- events (bound once) ---------- */
+  function setCountry(k, v) { S[k] = v; $$(`select[data-country="${k}"]`).forEach(s => s.value = v); render(); plan(); }
+  $$("select[data-country]").forEach(s => s.addEventListener("change", () => setCountry(s.dataset.country, s.value)));
+  $("#swapBtn").addEventListener("click", () => { const a = S.from; S.from = S.to; S.to = a;
+    $$('select[data-country="from"]').forEach(s => s.value = S.from); $$('select[data-country="to"]').forEach(s => s.value = S.to); render(); plan(); });
+  $("#amtF").addEventListener("input", e => { S.mode = "send"; S.val = parseFloat(e.target.value); render(); });
+  $("#amtT").addEventListener("input", e => { S.mode = "recv"; S.val = parseFloat(e.target.value); render(); });
+  $("#pForm").addEventListener("input", plan);
+  $("#pForm").addEventListener("submit", e => e.preventDefault());
+  load();
+})();
 </script>{% endblock %}

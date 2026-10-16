@@ -101,7 +101,7 @@ EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.smtp.EmailBackend',
 )
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Pathway <noreply@localhost>')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Fundora <noreply@localhost>')
 
 
 # Password validation
@@ -144,3 +144,20 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+
+import os
+FX_API_URL = os.getenv("FX_API_URL", "https://open.er-api.com/v6/latest/USD")  # paid plan: ".../v6/{key}/latest/USD"
+FX_API_KEY = os.getenv("FX_API_KEY", "")
+
+# SIMULATED placeholder assumptions. Replace with verified provider data.
+TRANSFER_METHODS = [
+    {"id": "bank",  "name": "Bank transfer",                "margin": 0.025, "fee_pct": 0.0,   "fee_flat_usd": 15},
+    {"id": "remit", "name": "Licensed remittance provider", "margin": 0.008, "fee_pct": 0.005, "fee_flat_usd": 2},
+    {"id": "other", "name": "Other eligible method",        "margin": 0.015, "fee_pct": 0.01,  "fee_flat_usd": 0},
+]

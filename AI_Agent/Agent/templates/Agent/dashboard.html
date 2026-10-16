@@ -347,7 +347,7 @@ if (voiceInput) {
 }
 
 /* ---------- Reminders (saved in this browser) ---------- */
-const REM_KEY = 'pathway_reminders_v1';
+const REM_KEY = 'Fundora_reminders_v1';
 const remForm = document.getElementById('rem-form');
 const remList = document.getElementById('rem-list');
 let reminders = [];
@@ -420,7 +420,7 @@ async function fetchDay(version) {
 }
 
 async function loadRates() {
-  const cacheKey = 'pathway_fx_v1', today = isoDay(0);
+  const cacheKey = 'Fundora_fx_v1', today = isoDay(0);
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
     if (cached && cached.day === today) return cached.data;

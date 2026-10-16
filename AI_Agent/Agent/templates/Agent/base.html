@@ -4,7 +4,7 @@
 {% load static %}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{% block title %}Pathway{% endblock %} – Student finance assistant</title>
+<title>{% block title %}Fundora{% endblock %} – Student finance assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -184,15 +184,15 @@
 .auth-dialog input::placeholder{color:#97a5b1}
 .auth-dialog input:hover{border-color:#cdd7df}
 .auth-dialog input:focus{border-color:var(--p-teal);background:#fff;box-shadow:var(--p-ring);outline:none}
-.pw{position:relative}
-.pw input{padding-right:48px}
-.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;padding:0;border:0;border-radius:10px;background:transparent;color:var(--p-mute);cursor:pointer;transition:background .15s,color .15s}
-.pw button:hover{background:var(--p-mint);color:var(--p-teal-d)}
-.pw button svg{width:20px;height:20px}
-.pw button .eye-off{display:none}
-.pw button.is-on{color:var(--p-teal-d)}
-.pw button.is-on .eye{display:none}
-.pw button.is-on .eye-off{display:block}
+.auth-dialog .pw{position:relative}
+.auth-dialog .pw input{padding-right:48px}
+.auth-dialog .pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;padding:0;border:0;border-radius:10px;background:transparent;color:var(--p-mute);cursor:pointer;transition:background .15s,color .15s}
+.auth-dialog .pw button:hover{background:var(--p-mint);color:var(--p-teal-d)}
+.auth-dialog .pw button svg{width:20px;height:20px}
+.auth-dialog .pw button .eye-off{display:none}
+.auth-dialog .pw button.is-on{color:var(--p-teal-d)}
+.auth-dialog .pw button.is-on .eye{display:none}
+.auth-dialog .pw button.is-on .eye-off{display:block}
 .auth-dialog .btn{width:100%;padding:13px 20px;margin-top:4px;font-size:1rem}
 .auth-dialog .btn[disabled]{opacity:.7;cursor:progress}
 .auth-dialog .btn[disabled]::before{content:"";width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
@@ -261,7 +261,7 @@
 {% if user.is_authenticated %}
 <aside class="app-sidebar" id="app-sidebar" aria-label="Application sidebar">
   <div class="sidebar-top">
-    <a class="sidebar-brand" href="{% url 'home' %}" aria-label="Pathway home"><i></i><span>Pathway</span></a>
+    <a class="sidebar-brand" href="{% url 'home' %}" aria-label="Fundora home"><i></i><span>Fundora</span></a>
     <button class="sidebar-toggle" type="button" aria-label="Collapse sidebar" aria-expanded="true" aria-controls="app-sidebar" title="Collapse sidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
     </button>
@@ -356,7 +356,7 @@
 {% else %}
 <header class="site-head">
   <div class="wrap nav">
-    <a class="logo" href="{% url 'home' %}"><i></i>Pathway</a>
+    <a class="logo" href="{% url 'home' %}"><i></i>Fundora</a>
     <nav aria-label="Main">
       <a href="{% url 'home' %}#features">Features</a>
       <a href="{% url 'home' %}#how">How it works</a>
@@ -461,7 +461,7 @@
   <div class="wrap">
     <div class="site-foot-main">
       <div class="site-foot-brand">
-        <a class="logo" href="{% url 'home' %}"><i></i>Pathway</a>
+        <a class="logo" href="{% url 'home' %}"><i></i>Fundora</a>
         <p>A clearer path to managing your money while studying abroad.</p>
       </div>
       <nav class="site-foot-links" aria-label="Footer navigation">
@@ -482,7 +482,7 @@ if (sidebar) {
   const resizeHandle = document.getElementById('sidebar-resize-handle');
   const scrim = sidebar.querySelector('.sidebar-scrim');
   const mobileQuery = window.matchMedia('(max-width: 720px)');
-  const savedState = localStorage.getItem('pathway-sidebar-collapsed');
+  const savedState = localStorage.getItem('Fundora-sidebar-collapsed');
   const minSidebarWidth = 220;
   const maxSidebarWidth = 420;
 
@@ -490,11 +490,11 @@ if (sidebar) {
     const clampedWidth = Math.max(minSidebarWidth, Math.min(maxSidebarWidth, width));
     document.body.style.setProperty('--sidebar-width', `${clampedWidth}px`);
     resizeHandle.setAttribute('aria-valuenow', String(clampedWidth));
-    localStorage.setItem('pathway-sidebar-width', String(clampedWidth));
+    localStorage.setItem('Fundora-sidebar-width', String(clampedWidth));
   }
 
   if (resizeHandle) {
-    const savedWidth = Number(localStorage.getItem('pathway-sidebar-width'));
+    const savedWidth = Number(localStorage.getItem('Fundora-sidebar-width'));
     if (Number.isFinite(savedWidth) && savedWidth > 0) {
       setSidebarWidth(savedWidth);
     }
@@ -543,11 +543,11 @@ if (sidebar) {
   setSidebarCollapsed(savedState === null ? mobileQuery.matches : savedState === 'true');
   toggle.addEventListener('click', () => {
     const collapsed = !document.body.classList.contains('sidebar-collapsed');
-    localStorage.setItem('pathway-sidebar-collapsed', String(collapsed));
+    localStorage.setItem('Fundora-sidebar-collapsed', String(collapsed));
     setSidebarCollapsed(collapsed);
   });
   scrim.addEventListener('click', () => {
-    localStorage.setItem('pathway-sidebar-collapsed', 'true');
+    localStorage.setItem('Fundora-sidebar-collapsed', 'true');
     setSidebarCollapsed(true);
   });
   mobileQuery.addEventListener('change', () => {
@@ -584,6 +584,11 @@ document.querySelectorAll('[data-open-modal]').forEach((button) => {
     const target = document.getElementById(button.dataset.openModal);
     if (!target) return;
     document.querySelectorAll('.auth-dialog[open]').forEach((dialog) => dialog.close());
+    if (target.id === 'login-modal') {
+      const status = target.querySelector('.auth-status');
+      status.textContent = button.dataset.loginNotice || '';
+      status.classList.remove('success');
+    }
     target.showModal();
   });
 });

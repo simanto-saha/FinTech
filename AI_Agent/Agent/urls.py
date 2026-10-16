@@ -13,4 +13,5 @@ urlpatterns = [
     path('register/verify/', views.verify_registration, name='verify_registration'),
     path('register/resend-otp/', views.resend_registration_otp, name='resend_registration_otp'),
     path('logout/', views.logout_view, name='logout'),
+    path("api/fx/", views.fx_api, name="fx_api"),
 ]

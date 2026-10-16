@@ -44,7 +44,7 @@ EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-16-character-gmail-app-password
 EMAIL_USE_TLS=True
 EMAIL_USE_SSL=False
-DEFAULT_FROM_EMAIL=Pathway <your-email@gmail.com>
+DEFAULT_FROM_EMAIL=Fundora <your-email@gmail.com>
 ```
 
 For Gmail, enable 2-Step Verification on the sending account and create an **App Password**. Put that app password in `EMAIL_HOST_PASSWORD`; do not use your normal Gmail password. If you use another email provider, replace `EMAIL_HOST`, `EMAIL_PORT`, TLS/SSL options, and sender credentials with the provider's SMTP settings. Use either TLS or SSL according to your provider, not both.
