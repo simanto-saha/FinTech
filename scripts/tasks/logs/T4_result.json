@@ -1,0 +1,387 @@
+{
+  "task_id": "T4",
+  "task_name": "Mid-flow university correction; plan updates without losing context",
+  "passed": true,
+  "error": null,
+  "duration_seconds": 0.405,
+  "timestamp": "2026-10-18T06:39:49.939082+00:00",
+  "inputs": {
+    "initial_university": "Shenzhen University",
+    "corrected_university": "Tsinghua University",
+    "target_amount": 45000.0,
+    "target_ccy": "CNY"
+  },
+  "step_results": [
+    {
+      "step_index": 1,
+      "name": "Classify User Intent",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "classify_user",
+        "args": {
+          "user_type": "student",
+          "from_country": "BD",
+          "to_country": "CN",
+          "purpose": "tuition"
+        },
+        "result": {
+          "status": "classified",
+          "user_type": "student",
+          "corridor": "BD-CN",
+          "purpose": "tuition",
+          "is_simulated": true
+        }
+      }
+    },
+    {
+      "step_index": 2,
+      "name": "Lookup Initial University (Shenzhen University)",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "lookup_university",
+        "args": {
+          "query": "Shenzhen University"
+        },
+        "result": {
+          "found": true,
+          "slug": "szu",
+          "name": "Shenzhen University",
+          "country": "CN",
+          "payment_channels": [
+            {
+              "channel": "Bank of China Wire",
+              "rail": "bdt_bank_wire",
+              "currency": "CNY",
+              "speed": "2-3 business days",
+              "fee_pct": 0.005,
+              "fixed_fee": 50.0,
+              "notes": "Direct cross-border SWIFT wire to Shenzhen University BOC account."
+            },
+            {
+              "channel": "Alipay Cross-Border Education",
+              "rail": "alipay_crossborder",
+              "currency": "CNY",
+              "speed": "Instant - 2 hours",
+              "fee_pct": 0.008,
+              "fixed_fee": 20.0,
+              "notes": "Alipay International Student Tuition payment rail with instant payment proof."
+            },
+            {
+              "channel": "UnionPay International",
+              "rail": "unionpay_intl",
+              "currency": "CNY",
+              "speed": "1 business day",
+              "fee_pct": 0.006,
+              "fixed_fee": 30.0,
+              "notes": "UnionPay online educational settlement portal."
+            }
+          ],
+          "common_issues": [
+            "Student ID must be present in payment reference/memo",
+            "Daily remittance cap applies for international students without resident permit",
+            "Tuition payments in foreign currency are converted at the designated BOC settlement rate"
+          ],
+          "support": {
+            "email": "szu_intl@szu.edu.cn",
+            "phone": "+86-755-26536114",
+            "office": "College of International Exchange, Zhaoxi Building"
+          }
+        }
+      }
+    },
+    {
+      "step_index": 3,
+      "name": "Create Initial Draft Plan for Shenzhen University",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "create_transfer_plan",
+        "args": {
+          "corridor": "BD-CN",
+          "target_amount": 45000.0,
+          "target_ccy": "CNY",
+          "currency_from": "BDT"
+        },
+        "result": {
+          "plan_id": 15,
+          "status": "draft",
+          "corridor": "BD-CN",
+          "total_source_amount": "750000.00",
+          "currency_from": "BDT",
+          "target_amount": "45000.0",
+          "target_ccy": "CNY",
+          "total_cost": "754750.00",
+          "number_of_legs": 2,
+          "legs": [
+            {
+              "leg_index": 0,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.00",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2375.00",
+              "estimated_speed": "2-3 business days",
+              "status": "planned"
+            },
+            {
+              "leg_index": 1,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.00",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2375.00",
+              "estimated_speed": "2-3 business days",
+              "status": "planned"
+            }
+          ],
+          "warnings": [
+            "Transfer amount 750000.00 BDT exceeds single transaction cap 500000.0 BDT; split into 2 compliant legs."
+          ],
+          "requires_approval": false
+        }
+      }
+    },
+    {
+      "step_index": 4,
+      "name": "Simulate Mid-Flow Correction Notice",
+      "action": "user_correction",
+      "status": "passed",
+      "details": {
+        "message": "Wait, I was admitted to Tsinghua University instead. Please switch university to Tsinghua."
+      }
+    },
+    {
+      "step_index": 5,
+      "name": "Safely Cancel Obsolete Plan",
+      "action": "cancel_active_plan",
+      "status": "passed",
+      "details": {
+        "cancelled_plan_id": 15
+      }
+    },
+    {
+      "step_index": 6,
+      "name": "Lookup Corrected University (Tsinghua University)",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "lookup_university",
+        "args": {
+          "query": "Tsinghua University"
+        },
+        "result": {
+          "found": true,
+          "slug": "tsinghua",
+          "name": "Tsinghua University",
+          "country": "CN",
+          "payment_channels": [
+            {
+              "channel": "ICBC Direct Education Wire",
+              "rail": "bdt_bank_wire",
+              "currency": "CNY",
+              "speed": "1-2 business days",
+              "fee_pct": 0.005,
+              "fixed_fee": 45.0,
+              "notes": "Official ICBC Beijing university settlement account."
+            },
+            {
+              "channel": "Alipay University Pay",
+              "rail": "alipay_crossborder",
+              "currency": "CNY",
+              "speed": "Instant",
+              "fee_pct": 0.009,
+              "fixed_fee": 25.0,
+              "notes": "Direct student portal integration via Alipay."
+            }
+          ],
+          "common_issues": [
+            "Admission number must match passport precisely",
+            "Fall semester tuition cutoff is strictly enforced on August 30"
+          ],
+          "support": {
+            "email": "iso@tsinghua.edu.cn",
+            "phone": "+86-10-62784860",
+            "office": "International Students & Scholars Center"
+          }
+        }
+      }
+    },
+    {
+      "step_index": 7,
+      "name": "Create New Compliant Plan for Tsinghua University",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "create_transfer_plan",
+        "args": {
+          "corridor": "BD-CN",
+          "target_amount": 45000.0,
+          "target_ccy": "CNY",
+          "currency_from": "BDT"
+        },
+        "result": {
+          "plan_id": 16,
+          "status": "draft",
+          "corridor": "BD-CN",
+          "total_source_amount": "750000.00",
+          "currency_from": "BDT",
+          "target_amount": "45000.0",
+          "target_ccy": "CNY",
+          "total_cost": "754750.00",
+          "number_of_legs": 2,
+          "legs": [
+            {
+              "leg_index": 0,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.00",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2375.00",
+              "estimated_speed": "2-3 business days",
+              "status": "planned"
+            },
+            {
+              "leg_index": 1,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.00",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2375.00",
+              "estimated_speed": "2-3 business days",
+              "status": "planned"
+            }
+          ],
+          "warnings": [
+            "Transfer amount 750000.00 BDT exceeds single transaction cap 500000.0 BDT; split into 2 compliant legs."
+          ],
+          "requires_approval": false
+        }
+      }
+    },
+    {
+      "step_index": 8,
+      "name": "Request Human Approval for Updated Plan",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "request_human_approval",
+        "args": {
+          "summary": "Approve 45,000 CNY tuition payment to Tsinghua University",
+          "plan_id": 16
+        },
+        "result": {
+          "requires_approval": true,
+          "plan_id": 16,
+          "summary": "Approve 45,000 CNY tuition payment to Tsinghua University",
+          "status": "pending_user_confirmation",
+          "expires_in_seconds": 300
+        }
+      }
+    },
+    {
+      "step_index": 9,
+      "name": "Verify Defense: Reject Execution of Cancelled Old Plan",
+      "action": "assert_cancelled_plan_execution_fails",
+      "status": "passed",
+      "details": {
+        "cancelled_plan_result": {
+          "status": "failed",
+          "error": "Plan #15 is not approved (current status: cancelled). Explicit user approval is required."
+        }
+      }
+    },
+    {
+      "step_index": 10,
+      "name": "Verify Defense: Reject Unapproved Execution of New Plan",
+      "action": "assert_unapproved_execution_fails",
+      "status": "passed",
+      "details": {
+        "unapproved_result": {
+          "status": "failed",
+          "error": "Plan #16 is not approved (current status: pending). Explicit user approval is required."
+        }
+      }
+    },
+    {
+      "step_index": 11,
+      "name": "Human Approval Gate Confirmation for New Plan",
+      "action": "approve_active_plan",
+      "status": "passed",
+      "details": {
+        "plan_id": 16,
+        "approval_status": "approved"
+      }
+    },
+    {
+      "step_index": 12,
+      "name": "Execute Corrected Plan",
+      "action": "execute_active_plan",
+      "status": "passed",
+      "details": {
+        "execution_result": {
+          "status": "executed",
+          "plan_id": 16,
+          "receipt_id": "REC-16-8A65ACAF",
+          "audit_hash": "58e59cc3ff87a503ed2bc9977c61a62a7a63683e2460f5a73a8f3cbd66611931",
+          "target_amount": "45000.00",
+          "target_ccy": "CNY",
+          "legs": [
+            {
+              "status": "executed",
+              "idempotency_key": "plan_16:0",
+              "leg_index": 0,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount": "22500.00",
+              "currency": "CNY",
+              "reference": "SIM-TX-E2182CE30C87",
+              "executed_at": "2026-10-18T06:39:49.935425+00:00",
+              "is_simulated": true
+            },
+            {
+              "status": "executed",
+              "idempotency_key": "plan_16:1",
+              "leg_index": 1,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount": "22500.00",
+              "currency": "CNY",
+              "reference": "SIM-TX-1F7F22D004CA",
+              "executed_at": "2026-10-18T06:39:49.935929+00:00",
+              "is_simulated": true
+            }
+          ],
+          "is_simulated": true
+        }
+      }
+    }
+  ],
+  "criteria_results": {
+    "initial_plan_cancelled == true": true,
+    "new_plan_status == \"executed\"": true,
+    "context_retained == true": true,
+    "ledger_entries_count == 2": true,
+    "no_unapproved_execution == true": true,
+    "audit_logged == true": true
+  },
+  "execution_metrics": {
+    "active_plan_id": 16,
+    "active_plan_status": "executed",
+    "ledger_entries_created": 2,
+    "audit_logs_recorded": 12
+  }
+}

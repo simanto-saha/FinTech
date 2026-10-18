@@ -1,0 +1,73 @@
+id: T2
+name: "Worker remittance PH->AE via single leg"
+description: "Simulates an overseas Filipino worker sending 2,000 AED (30,000 PHP) to family in UAE. The amount is within the 50,000 PHP daily corridor cap, so it executes as a single compliant leg after user approval."
+user_type: worker
+corridor: PH-AE
+inputs:
+  amount_from: 30000.00
+  currency_from: PHP
+  target_amount: 2000.00
+  target_ccy: AED
+steps:
+  - name: "Classify User Intent"
+    action: tool_call
+    tool: classify_user
+    args:
+      user_type: worker
+      from_country: PH
+      to_country: AE
+      purpose: family_remittance
+    expect:
+      status: classified
+      corridor: PH-AE
+
+  - name: "Query Corridor Rules"
+    action: tool_call
+    tool: get_corridor_rules
+    args:
+      corridor: PH-AE
+    expect:
+      corridor: PH-AE
+      daily_cap: "250000.00"
+
+  - name: "Build Compliant Single-Leg Plan"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: PH-AE
+      target_amount: 2000.00
+      target_ccy: AED
+      currency_from: PHP
+      rail_preference: cheapest
+    expect:
+      status: draft
+      number_of_legs: 1
+
+  - name: "Request Human Approval"
+    action: tool_call
+    tool: request_human_approval
+    args:
+      summary: "Approve 2,000 AED remittance to UAE via single leg"
+    expect:
+      requires_approval: true
+      status: pending_user_confirmation
+
+  - name: "Verify Defense: Reject Unapproved Execution"
+    action: assert_unapproved_execution_fails
+
+  - name: "Human Approval Gate Confirmation"
+    action: approve_active_plan
+
+  - name: "Execute Approved Transfer Plan"
+    action: execute_active_plan
+    expect:
+      status: executed
+
+success_criteria:
+  - plan_status == "executed"
+  - number_of_legs == 1
+  - target_amount == 2000.00
+  - target_ccy == "AED"
+  - ledger_entries_count == 1
+  - no_unapproved_execution == true
+  - audit_logged == true

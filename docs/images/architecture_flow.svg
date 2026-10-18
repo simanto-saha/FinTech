@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#09131f" />
+      <stop offset="100%" stop-color="#0f2137" />
+    </linearGradient>
+    <linearGradient id="untrustedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0.05" />
+    </linearGradient>
+    <linearGradient id="trustedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.05" />
+    </linearGradient>
+    <linearGradient id="boxBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#162c47" />
+      <stop offset="100%" stop-color="#0e1d30" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="480" rx="16" fill="url(#bg)" />
+
+  <!-- Section 1: Untrusted Public Inflow (Top Left) -->
+  <g transform="translate(36, 32)">
+    <rect width="888" height="90" rx="10" fill="url(#untrustedGrad)" stroke="#ef4444" stroke-opacity="0.35" stroke-dasharray="4,4" />
+    <text x="20" y="26" fill="#f87171" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="1">UNTRUSTED PUBLIC ZONE (CLIENT / INVOICES / ADVERSARIAL ATTACKS)</text>
+    
+    <!-- User Input Bubble -->
+    <g transform="translate(20, 36)">
+      <rect width="250" height="38" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" />
+      <text x="14" y="24" fill="#f1f5f9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">💬 User Prompts (A1, A3 Attacks)</text>
+    </g>
+
+    <!-- Document Input Bubble -->
+    <g transform="translate(310, 36)">
+      <rect width="270" height="38" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" />
+      <text x="14" y="24" fill="#f1f5f9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">📄 Invoice Uploads (A4 Prompt Injection)</text>
+    </g>
+
+    <!-- Masking Request Bubble -->
+    <g transform="translate(620, 36)">
+      <rect width="248" height="38" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" />
+      <text x="14" y="24" fill="#f1f5f9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">🔒 PII Harvesting Attempts (A2 Attack)</text>
+    </g>
+  </g>
+
+  <!-- Arrows Down -->
+  <path d="M 160 122 L 160 148" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
+  <path d="M 445 122 L 445 148" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
+  <path d="M 744 122 L 744 148" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Section 2: Deterministic Django Security & Shielding Layer -->
+  <g transform="translate(36, 148)">
+    <rect width="888" height="130" rx="12" fill="url(#boxBg)" stroke="#334155" stroke-width="1" filter="url(#shadow)" />
+    <text x="24" y="26" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="1">DETERMINISTIC DJANGO MONOLITH (SECURITY BOUNDARY)</text>
+
+    <!-- Sub-box 1: Injection Scanner -->
+    <g transform="translate(24, 38)">
+      <rect width="260" height="74" rx="8" fill="#0f1f33" stroke="#1e3a5f" stroke-width="1" />
+      <text x="14" y="22" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">1. Heuristic Scanner</text>
+      <text x="14" y="42" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Regex pattern inspection</text>
+      <text x="14" y="58" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Wraps doc in &lt;untrusted_document&gt;</text>
+    </g>
+
+    <!-- Sub-box 2: Context Assembly & Masking -->
+    <g transform="translate(314, 38)">
+      <rect width="260" height="74" rx="8" fill="#0f1f33" stroke="#1e3a5f" stroke-width="1" />
+      <text x="14" y="22" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">2. Fresh Context Assembly</text>
+      <text x="14" y="42" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Deterministically built per iteration</text>
+      <text x="14" y="58" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">All PII masked (••••) • Size &lt; 6 KB</text>
+    </g>
+
+    <!-- Sub-box 3: Session Tier Gate -->
+    <g transform="translate(604, 38)">
+      <rect width="260" height="74" rx="8" fill="#0f1f33" stroke="#1e3a5f" stroke-width="1" />
+      <text x="14" y="22" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">3. Code-Owned Session Tier</text>
+      <text x="14" y="42" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Tier 0 (Read-Only) to 3 (Recurring)</text>
+      <text x="14" y="58" fill="#f59e0b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Prompt-immutable (A3 Defense)</text>
+    </g>
+  </g>
+
+  <!-- Arrow Down to Execution Gate -->
+  <path d="M 480 278 L 480 306" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Section 3: Reasoning Layer vs. Execution Gate -->
+  <g transform="translate(36, 306)">
+    <!-- Reasoning Box (Left) -->
+    <g filter="url(#shadow)">
+      <rect width="424" height="142" rx="12" fill="url(#boxBg)" stroke="#334155" stroke-width="1" />
+      <text x="20" y="26" fill="#a78bfa" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="1">LLM REASONING LAYER (DEEPSEEK / GEMINI)</text>
+      <text x="20" y="52" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600">Understands Intent &amp; Chooses Tools</text>
+      <text x="20" y="72" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">• 16 Strict Tool Schemas (args validated in Django)</text>
+      <text x="20" y="90" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">• Structured JSON Envelope: reply, cards, next_action</text>
+      <text x="20" y="108" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">• grounded_in_context validation (Honesty flag)</text>
+      <text x="20" y="128" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">CANNOT MOVE MONEY OR ACCESS APPROVAL TOKENS</text>
+    </g>
+
+    <!-- Execution Gate & Storage Box (Right) -->
+    <g transform="translate(464, 0)" filter="url(#shadow)">
+      <rect width="424" height="142" rx="12" fill="url(#boxBg)" stroke="#14b8a6" stroke-width="1.5" />
+      <text x="20" y="26" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="1">EXECUTION GATE &amp; TAMPER-EVIDENT LEDGER</text>
+      <text x="20" y="52" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600">Deterministic Django Code Decides</text>
+      <text x="20" y="72" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">• Single-use 64-char Approval Token (UI only, 300s TTL)</text>
+      <text x="20" y="90" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">• Pre-execution AML/Sanctions compliance re-check</text>
+      <text x="20" y="108" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">• Per-leg idempotency key (prevents double charging)</text>
+      <text x="20" y="128" fill="#10b981" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">DOUBLE-ENTRY LEDGER + SHA-256 AUDIT LOG</text>
+    </g>
+  </g>
+</svg>
+

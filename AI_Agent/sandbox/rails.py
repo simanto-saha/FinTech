@@ -511,6 +511,7 @@ def execute(
     plan: Any,
     idempotency_key: Optional[str] = None,
     user: Optional[Any] = None,
+    document: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
     Execute a transfer plan (all legs) within the simulated sandbox.
@@ -524,11 +525,19 @@ def execute(
         target_amt = plan.get("target_amount")
         target_ccy = plan.get("target_ccy")
         plan_user = user or plan.get("user")
+        plan_doc = document or plan.get("document")
     else:
         legs_data = plan.legs or []
         target_amt = plan.target_amount
         target_ccy = plan.target_ccy
         plan_user = user or getattr(plan, "user", None)
+        plan_doc = document
+        if plan_doc is None and hasattr(plan, "session") and plan.session:
+            try:
+                from Agent.models import Document
+                plan_doc = Document.objects.filter(session=plan.session, verified=True).first()
+            except Exception:
+                pass
 
     base_idem = idempotency_key or (f"plan_{plan_id}" if plan_id else secrets.token_hex(8))
 
@@ -544,6 +553,7 @@ def execute(
             idempotency_key=leg_idem_key,
             plan_id=plan_id,
             user=plan_user,
+            document=plan_doc,
         )
         executed_legs.append(leg_result)
         if leg_result["status"] == "failed":

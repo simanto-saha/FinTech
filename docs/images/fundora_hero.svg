@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1928" />
+      <stop offset="50%" stop-color="#0f263d" />
+      <stop offset="100%" stop-color="#06121d" />
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#132742" stop-opacity="0.9" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="960" height="320" rx="16" fill="url(#bgGrad)" />
+
+  <!-- Subtle Circuit / Grid Pattern Overlays -->
+  <circle cx="850" cy="50" r="140" fill="#14b8a6" fill-opacity="0.04" />
+  <circle cx="100" cy="270" r="180" fill="#0284c7" fill-opacity="0.04" />
+
+  <!-- Competition Track Badge -->
+  <g transform="translate(48, 36)">
+    <rect width="365" height="26" rx="13" fill="#14b8a6" fill-opacity="0.16" stroke="#14b8a6" stroke-opacity="0.4" stroke-width="1" />
+    <circle cx="14" cy="13" r="5" fill="#14b8a6" />
+    <text x="28" y="17" fill="#5eead4" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5">FINTECHATHON 2026 • TOPIC C: STUDENT &amp; CROSS-BORDER</text>
+  </g>
+
+  <!-- Title & Core Brand -->
+  <text x="48" y="108" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" letter-spacing="-1">FUNDORA</text>
+  <text x="272" y="108" fill="url(#tealGrad)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700">AI FINANCIAL PARTICIPANT</text>
+  <text x="48" y="136" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400">
+    Deterministic Django Monolith • Multi-Leg Remittance • Fail-Closed Execution Gate • PII Shielding
+  </text>
+
+  <!-- Core Architectural Motto Box -->
+  <g transform="translate(620, 36)">
+    <rect width="292" height="104" rx="12" fill="#0d1f33" stroke="#334155" stroke-width="1" />
+    <text x="16" y="28" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" letter-spacing="1">NON-NEGOTIABLE CORE</text>
+    <text x="16" y="54" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700">“LLM reasons.</text>
+    <text x="16" y="74" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700">Deterministic code decides.”</text>
+    <text x="16" y="94" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">Zero money moved without human approval</text>
+  </g>
+
+  <!-- 4 Pillar Cards -->
+  <!-- Pillar 1: Remittances -->
+  <g transform="translate(48, 172)" filter="url(#shadow)">
+    <rect width="202" height="114" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="16" y="32" font-size="18">💸</text>
+    <text x="42" y="30" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700">Remittances</text>
+    <text x="16" y="58" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500">Multi-Leg Splitting</text>
+    <text x="16" y="76" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">BD-CN &amp; PH-AE caps</text>
+    <text x="16" y="94" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600">✓ Auto-recovery (T1, T2, T5)</text>
+  </g>
+
+  <!-- Pillar 2: Tuition Invoicing -->
+  <g transform="translate(266, 172)" filter="url(#shadow)">
+    <rect width="202" height="114" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="16" y="32" font-size="18">🎓</text>
+    <text x="42" y="30" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700">Tuition Invoicing</text>
+    <text x="16" y="58" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500">Vision OCR Pipeline</text>
+    <text x="16" y="76" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">SZU, Tsinghua &amp; channel match</text>
+    <text x="16" y="94" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600">✓ Mid-flow update (T3, T4)</text>
+  </g>
+
+  <!-- Pillar 3: Credit Building -->
+  <g transform="translate(484, 172)" filter="url(#shadow)">
+    <rect width="202" height="114" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="16" y="32" font-size="18">💳</text>
+    <text x="42" y="30" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700">Credit Building</text>
+    <text x="16" y="58" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500">Alternative Scoring</text>
+    <text x="16" y="76" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Score 745 + Landlord Certificate</text>
+    <text x="16" y="94" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600">✓ Waives upfront rent deposit</text>
+  </g>
+
+  <!-- Pillar 4: Multi-Currency & FX -->
+  <g transform="translate(702, 172)" filter="url(#shadow)">
+    <rect width="210" height="114" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="16" y="32" font-size="18">📊</text>
+    <text x="42" y="30" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700">Multi-Currency &amp; FX</text>
+    <text x="16" y="58" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500">Spending Envelopes</text>
+    <text x="16" y="76" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">5% / 10% / 15% shock stress tests</text>
+    <text x="16" y="94" fill="#14b8a6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600">✓ Deterministic double-entry</text>
+  </g>
+</svg>
+

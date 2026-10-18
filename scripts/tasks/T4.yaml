@@ -1,0 +1,99 @@
+id: T4
+name: "Mid-flow university correction; plan updates without losing context"
+description: "Simulates a student who initially prepares tuition for Shenzhen University, but corrects mid-flow to Tsinghua University. The agent retains session context, cancels the obsolete draft plan, looks up Tsinghua payment channels, and issues a new compliant plan."
+user_type: student
+corridor: BD-CN
+inputs:
+  initial_university: "Shenzhen University"
+  corrected_university: "Tsinghua University"
+  target_amount: 45000.00
+  target_ccy: CNY
+steps:
+  - name: "Classify User Intent"
+    action: tool_call
+    tool: classify_user
+    args:
+      user_type: student
+      from_country: BD
+      to_country: CN
+      purpose: tuition
+    expect:
+      status: classified
+
+  - name: "Lookup Initial University (Shenzhen University)"
+    action: tool_call
+    tool: lookup_university
+    args:
+      query: "Shenzhen University"
+    expect:
+      found: true
+      slug: szu
+
+  - name: "Create Initial Draft Plan for Shenzhen University"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: BD-CN
+      target_amount: 45000.00
+      target_ccy: CNY
+      currency_from: BDT
+    expect:
+      status: draft
+
+  - name: "Simulate Mid-Flow Correction Notice"
+    action: user_correction
+    message: "Wait, I was admitted to Tsinghua University instead. Please switch university to Tsinghua."
+
+  - name: "Safely Cancel Obsolete Plan"
+    action: cancel_active_plan
+
+  - name: "Lookup Corrected University (Tsinghua University)"
+    action: tool_call
+    tool: lookup_university
+    args:
+      query: "Tsinghua University"
+    expect:
+      found: true
+      slug: tsinghua
+
+  - name: "Create New Compliant Plan for Tsinghua University"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: BD-CN
+      target_amount: 45000.00
+      target_ccy: CNY
+      currency_from: BDT
+    expect:
+      status: draft
+
+  - name: "Request Human Approval for Updated Plan"
+    action: tool_call
+    tool: request_human_approval
+    args:
+      summary: "Approve 45,000 CNY tuition payment to Tsinghua University"
+    expect:
+      requires_approval: true
+
+  - name: "Verify Defense: Reject Execution of Cancelled Old Plan"
+    action: assert_cancelled_plan_execution_fails
+
+  - name: "Verify Defense: Reject Unapproved Execution of New Plan"
+    action: assert_unapproved_execution_fails
+
+  - name: "Human Approval Gate Confirmation for New Plan"
+    action: approve_active_plan
+
+  - name: "Execute Corrected Plan"
+    action: execute_active_plan
+    expect:
+      status: executed
+
+success_criteria:
+  - initial_plan_cancelled == true
+  - new_plan_status == "executed"
+  - context_retained == true
+  - ledger_entries_count == 2
+  - no_unapproved_execution == true
+  - audit_logged == true
+

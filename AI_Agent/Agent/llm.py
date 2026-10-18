@@ -24,11 +24,12 @@ class ProviderUnavailableError(ProviderError):
 
 def get_llm_config() -> Dict[str, str]:
     """Retrieve LLM provider configuration from settings/environment."""
+    from django.conf import settings
     return {
-        "provider": os.getenv("LLM_PROVIDER", "deepseek"),
-        "api_key": os.getenv("DEEPSEEK_API_KEY", ""),
-        "url": os.getenv("DEEPSEEK_URL", "https://api.deepseek.com/chat/completions"),
-        "model": os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+        "provider": os.getenv("LLM_PROVIDER") or getattr(settings, "LLM_PROVIDER", "deepseek"),
+        "api_key": os.getenv("DEEPSEEK_API_KEY") if "DEEPSEEK_API_KEY" in os.environ else (getattr(settings, "DEEPSEEK_API_KEY", "") or ""),
+        "url": os.getenv("DEEPSEEK_URL") or getattr(settings, "DEEPSEEK_URL", "https://api.deepseek.com/chat/completions"),
+        "model": os.getenv("DEEPSEEK_MODEL") or getattr(settings, "DEEPSEEK_MODEL", "deepseek-chat"),
     }
 
 
@@ -199,6 +200,7 @@ async def call_llm(
     temperature: float = 0.2,
     session: Optional[Any] = None,
     client: Optional[httpx.AsyncClient] = None,
+    response_format: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Call the LLM provider (DeepSeek / OpenAI-compatible endpoint).
@@ -208,6 +210,7 @@ async def call_llm(
     - Security audit logging on retry
     - Response structure validation
     - Fail-closed handling for missing keys / network drops
+    - Optional response_format support (JSON mode)
     """
     config = get_llm_config()
     api_key = config["api_key"]
@@ -226,10 +229,13 @@ async def call_llm(
         "model": model,
         "messages": sanitized_messages,
         "temperature": temperature,
+        "max_tokens": 1500,
     }
     if effective_tools:
         payload["tools"] = effective_tools
         payload["tool_choice"] = tool_choice
+    if response_format:
+        payload["response_format"] = response_format
 
     headers = {
         "Authorization": f"Bearer {api_key}",

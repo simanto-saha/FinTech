@@ -165,39 +165,39 @@ Only mark a phase complete after all required checks pass. A failing or unrun ch
 
 ## 10. Scripted task runner and competition scenarios
 
-- [ ] Add YAML task definitions and a `run_task` management command with isolated sandbox state and machine-readable logs.
-- [ ] T1: student tuition BD-CN split into two legs when a cap requires it.
-- [ ] T2: worker remittance PH-AE via one leg.
-- [ ] T3: invoice upload, extraction, confirmation, and plan creation.
-- [ ] T4: user corrects university mid-flow; agent rechecks and updates the plan without losing context.
-- [ ] T5: second leg fails; system detects, replans, requests approval, and completes safely.
-- [ ] Ensure each scenario asserts both successful outcome and absence of unapproved execution.
+- [x] Add YAML task definitions and a `run_task` management command with isolated sandbox state and machine-readable logs.
+- [x] T1: student tuition BD-CN split into two legs when a cap requires it.
+- [x] T2: worker remittance PH-AE via one leg.
+- [x] T3: invoice upload, extraction, confirmation, and plan creation.
+- [x] T4: user corrects university mid-flow; agent rechecks and updates the plan without losing context.
+- [x] T5: second leg fails; system detects, replans, requests approval, and completes safely.
+- [x] Ensure each scenario asserts both successful outcome and absence of unapproved execution.
 
 **Checks / exit criteria**
 
-- [ ] `run_task T1` through `run_task T5` pass from a clean sandbox database.
-- [ ] Each run saves reproducible inputs, tool sequence, assertions, and execution/audit logs.
+- [x] `run_task T1` through `run_task T5` pass from a clean sandbox database.
+- [x] Each run saves reproducible inputs, tool sequence, assertions, and execution/audit logs.
 
 ## 11. Security attack runner and self-assessment
 
-- [ ] Add YAML attack cases and a `run_attack` command with machine-readable evidence.
-- [ ] A1 induced transfer: no plan/execute without a valid user request and approval; event is logged.
-- [ ] A2 data extraction: only masked data is returned.
-- [ ] A3 privilege escalation: prompts/tool arguments cannot change code-owned tier.
-- [ ] A4 prompt injection via document: content stays data, no privileged action occurs, detection is logged.
-- [ ] Write a security self-assessment covering trust boundaries, secrets, uploads, authorization, approval, idempotency, and residual risks.
+- [x] Add YAML attack cases and a `run_attack` command with machine-readable evidence.
+- [x] A1 induced transfer: no plan/execute without a valid user request and approval; event is logged.
+- [x] A2 data extraction: only masked data is returned.
+- [x] A3 privilege escalation: prompts/tool arguments cannot change code-owned tier.
+- [x] A4 prompt injection via document: content stays data, no privileged action occurs, detection is logged.
+- [x] Write a security self-assessment covering trust boundaries, secrets, uploads, authorization, approval, idempotency, and residual risks.
 
 **Checks / exit criteria**
 
-- [ ] `run_attack A1` through `run_attack A4` pass and save evidence.
-- [ ] Review logs and test artifacts for leaked credentials, PII, or approval tokens.
-- [ ] Security review confirms fail-closed behavior on provider, OCR, compliance, and sandbox errors.
+- [x] `run_attack A1` through `run_attack A4` pass and save evidence.
+- [x] Review logs and test artifacts for leaked credentials, PII, or approval tokens.
+- [x] Security review confirms fail-closed behavior on provider, OCR, compliance, and sandbox errors.
 
 ## 12. Documentation, release, and demo readiness
 
 - [ ] Update README for the actual stack, Windows and Linux/macOS setup, environment variables, migrations, local demo, and deployment.
 - [ ] Document data flow, model/tool boundaries, approval sequence, sandbox assumptions, and known limitations.
-- [ ] Add a presentation outline (10 minutes maximum) and optional demo video (5 minutes maximum).
+- [x] Add a presentation outline (10 minutes maximum) and optional demo video (5 minutes maximum).
 - [ ] Prepare clean-clone instructions and ensure `.env`, media, SQLite databases, caches, and secrets are gitignored.
 - [ ] Capture final task and attack logs and link them from the test results file.
 - [ ] Verify competition deliverables and team constraints separately; these cannot be verified from code alone.

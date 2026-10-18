@@ -1,0 +1,94 @@
+id: T3
+name: "Invoice upload, extraction, verification, and plan creation"
+description: "Simulates a student uploading a tuition fee invoice document for Shenzhen University. The document is verified, OCR entities are confirmed, payment channels are cross-referenced, and a plan is created and executed with ledger linkage."
+user_type: student
+corridor: BD-CN
+inputs:
+  document_file: "Shenzhen_University_Tuition_Invoice_Fall2026.pdf"
+  doc_type: "university_fee_invoice"
+  extracted_data:
+    payee: "Shenzhen University"
+    student_id: "STU-2026-8842"
+    amount: 45000.00
+    currency: "CNY"
+    due_date: "2026-10-25"
+  confidence: 0.95
+steps:
+  - name: "Classify User Intent"
+    action: tool_call
+    tool: classify_user
+    args:
+      user_type: student
+      from_country: BD
+      to_country: CN
+      purpose: tuition
+    expect:
+      status: classified
+
+  - name: "Upload and Extract Invoice Document"
+    action: upload_document
+    doc_type: university_fee_invoice
+    filename: "Shenzhen_University_Tuition_Invoice_Fall2026.pdf"
+    extracted:
+      payee: "Shenzhen University"
+      student_id: "STU-2026-8842"
+      amount: 45000.00
+      currency: "CNY"
+      due_date: "2026-10-25"
+    confidence: 0.95
+
+  - name: "Verify Document Integrity and Authenticity"
+    action: verify_active_document
+    expect:
+      status: verified
+
+  - name: "Lookup University from Extracted Invoice Payee"
+    action: tool_call
+    tool: lookup_university
+    args:
+      query: "Shenzhen University"
+    expect:
+      found: true
+      slug: szu
+
+  - name: "Create Transfer Plan Linked to Invoice"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: BD-CN
+      target_amount: 45000.00
+      target_ccy: CNY
+      currency_from: BDT
+    expect:
+      status: draft
+
+  - name: "Request Human Approval"
+    action: tool_call
+    tool: request_human_approval
+    args:
+      summary: "Approve 45,000 CNY tuition payment linked to Invoice STU-2026-8842"
+    expect:
+      requires_approval: true
+
+  - name: "Verify Defense: Reject Unapproved Execution"
+    action: assert_unapproved_execution_fails
+
+  - name: "Human Approval Gate Confirmation"
+    action: approve_active_plan
+
+  - name: "Execute Plan with Document Linkage"
+    action: execute_active_plan
+    expect:
+      status: executed
+
+success_criteria:
+  - document_verified == true
+  - document_confidence_gte == 0.85
+  - plan_status == "executed"
+  - target_amount == 45000.00
+  - target_ccy == "CNY"
+  - ledger_entries_count == 2
+  - ledger_has_document_link == true
+  - no_unapproved_execution == true
+  - audit_logged == true
+

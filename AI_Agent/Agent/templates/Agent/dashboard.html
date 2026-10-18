@@ -16,26 +16,31 @@
   --bubble-txt:var(--bubble-user-text,#12263A);
   width:100%;max-width:860px;margin-inline:auto;padding:18px clamp(16px,3vw,28px) 64px}
 
-/* ---------- Chat | Reminder switch ---------- */
+/* ---------- Chat | Reminder switch (Apple Segmented Control) ---------- */
 .modes{display:flex;justify-content:center}
-.modes div{display:inline-flex;gap:2px;padding:4px;border-radius:99px;background:var(--bg-subtle);border:1px solid var(--l)}
-.modes button{display:inline-flex;align-items:center;gap:6px;padding:9px 26px;border:0;border-radius:99px;background:transparent;color:var(--m);font:500 .95rem "DM Sans",sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.modes div{display:inline-flex;gap:3px;padding:3px;border-radius:999px;background:rgba(0,0,0,.05);border:1px solid var(--l);backdrop-filter:blur(10px)}
+@media (prefers-color-scheme:dark){
+  .modes div{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+}
+.modes button{display:inline-flex;align-items:center;gap:6px;padding:8px 24px;border:0;border-radius:999px;background:transparent;color:var(--m);font:600 .9rem -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;cursor:pointer;transition:transform .15s cubic-bezier(0.16,1,0.3,1),background .15s ease,color .15s ease}
 .modes button:hover{color:var(--kh)}
+.modes button:active{transform:scale(0.96);transition-duration:0.05s}
 .modes button svg{width:15px;height:15px}
-.modes button[aria-selected="true"]{background:var(--bg-card);color:var(--kh);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.modes button[aria-selected="true"]{background:var(--bg-card);color:var(--kh);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.12),0 0 1px rgba(0,0,0,.08)}
 .modes button:focus-visible{outline:2px solid var(--t);outline-offset:2px}
 .panel[hidden]{display:none}
 .panel{padding-top:clamp(20px,5vh,48px);display:grid;gap:22px}
 
 /* ---------- Chat ---------- */
-.begin{margin:0;text-align:center;font:700 clamp(1.4rem,3vw,1.85rem) "Bricolage Grotesque","DM Sans",sans-serif;letter-spacing:-.02em;color:var(--kh)}
+.begin{margin:0;text-align:center;font:800 clamp(1.4rem,3vw,1.9rem) -apple-system,BlinkMacSystemFont,"SF Pro Display","Bricolage Grotesque",sans-serif;letter-spacing:-.025em;color:var(--kh)}
 .begin-wrap{margin:clamp(10px,3vh,28px) 0 6px;text-align:center}
 .begin-sub{color:var(--m);font-size:.95rem;margin:6px 0 20px}
 .pillar-prompts{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin-bottom:20px}
-.pillar-card{display:flex;flex-direction:column;gap:5px;padding:16px 18px;border:1px solid var(--l);border-radius:18px;background:var(--bg-card);color:var(--k);cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
-.pillar-card:hover{border-color:var(--t);transform:translateY(-2px);box-shadow:0 6px 20px -8px rgba(0,0,0,.15)}
+.pillar-card{display:flex;flex-direction:column;gap:5px;padding:18px 20px;border:1px solid var(--l);border-radius:20px;background:var(--bg-card);color:var(--k);cursor:pointer;box-shadow:0 2px 8px -2px rgba(0,0,0,.04);transition:border-color .15s,box-shadow .25s cubic-bezier(0.16,1,0.3,1),transform .25s cubic-bezier(0.16,1,0.3,1)}
+.pillar-card:hover{border-color:var(--t);transform:translateY(-2px);box-shadow:0 8px 24px -8px rgba(0,0,0,.12)}
+.pillar-card:active{transform:scale(0.98);transition-duration:0.05s}
 .pillar-badge{align-self:flex-start;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--sk);color:var(--td)}
-.pillar-card strong{font-size:.96rem;color:var(--kh)}
+.pillar-card strong{font-size:.96rem;color:var(--kh);letter-spacing:-.01em}
 .pillar-card span:last-child{font-size:.82rem;color:var(--m);line-height:1.4}
 @media(max-width:640px){.pillar-prompts{grid-template-columns:1fr}}
 
@@ -44,18 +49,21 @@
 .pretext-bar{width:100%;overflow:hidden;padding:2px 0 2px}
 .pretext-scroll{display:flex;gap:8px;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:2px 2px 6px}
 .pretext-scroll::-webkit-scrollbar{display:none}
-.pretext-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--l);background:var(--bg-card);color:var(--k);font:600 .84rem "DM Sans",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);transition:all .18s cubic-bezier(0.16,1,0.3,1);flex-shrink:0}
-.pretext-btn:hover{border-color:var(--t);color:var(--td);transform:translateY(-2px);box-shadow:0 4px 14px rgba(14,138,125,.2)}
-.pretext-btn:active{transform:translateY(0)}
+.pretext-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--l);background:var(--bg-card);color:var(--k);font:600 .84rem -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:all .18s cubic-bezier(0.16,1,0.3,1);flex-shrink:0}
+.pretext-btn:hover{border-color:var(--t);color:var(--td);transform:translateY(-1.5px);box-shadow:0 4px 14px rgba(14,138,125,.18)}
+.pretext-btn:active{transform:scale(0.95);transition-duration:0.05s}
 .p-icon{font-size:1rem;line-height:1}
 .p-text{font-size:.83rem}
 
-/* Chat started: hide graphs + heading, keep composer dock sticky */
+/* Chat started: hide graphs + heading, keep composer dock sticky (Frosted Translucent Chrome) */
 .has-chat{padding-bottom:12px}
 .has-chat .fx-wrap,.has-chat .begin,.has-chat .begin-wrap{display:none}
 .has-chat #panel-chat{padding-top:14px;min-height:calc(100dvh - 180px);grid-template-rows:1fr auto auto;gap:14px}
 .has-chat .assistant-thread{max-height:none;overflow:visible;align-content:start;gap:22px;padding:8px 0 32px}
-.has-chat .composer-dock{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:10;background:var(--bg-card);border:1px solid var(--l);border-radius:24px;padding:10px 12px 8px;box-shadow:0 12px 40px -12px rgba(0,0,0,.22)}
+.has-chat .composer-dock{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:10;background:rgba(255,255,255,0.82);backdrop-filter:blur(24px) saturate(190%);-webkit-backdrop-filter:blur(24px) saturate(190%);border:1px solid rgba(255,255,255,0.6);border-radius:26px;padding:10px 14px 8px;box-shadow:0 16px 40px -12px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.04);transition:box-shadow .2s ease}
+@media (prefers-color-scheme:dark){
+  .has-chat .composer-dock{background:rgba(20,35,50,0.82);border:1px solid rgba(255,255,255,0.12);box-shadow:0 16px 40px -12px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,0.06)}
+}
 .has-chat .assistant-composer{box-shadow:none;border-color:var(--l)}
 .has-chat .question-status{position:relative;margin:4px 0 0;z-index:5}
 

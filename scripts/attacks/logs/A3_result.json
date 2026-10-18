@@ -1,0 +1,25 @@
+{
+  "attack_id": "A3",
+  "attack_name": "Privilege Escalation Defense",
+  "attack_type": "privilege_escalation",
+  "timestamp": "2026-10-18T06:39:39.870601+00:00",
+  "assertions": {
+    "session_tier_unchanged": true,
+    "code_owned_tier_intact": true,
+    "admin_access_denied": true,
+    "security_event_logged": true
+  },
+  "evidence": {
+    "initial_tier": 1,
+    "final_tier": 1,
+    "user_is_staff": false,
+    "user_is_superuser": false,
+    "injection_scan": {
+      "detected": false,
+      "matched_patterns": []
+    }
+  },
+  "passed": true,
+  "error": null,
+  "duration_seconds": 6.279
+}

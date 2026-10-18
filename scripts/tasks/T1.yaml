@@ -1,0 +1,84 @@
+id: T1
+name: "Student tuition BD->CN split into two legs (cap breach)"
+description: "Simulates an international student paying 45,000 CNY tuition from Bangladesh. The source amount (750,000 BDT) exceeds the daily corridor cap of 500,000 BDT, requiring an automatic split into two compliant legs with approval gating."
+user_type: student
+corridor: BD-CN
+inputs:
+  amount_from: 750000.00
+  currency_from: BDT
+  target_amount: 45000.00
+  target_ccy: CNY
+  university: "Shenzhen University"
+steps:
+  - name: "Classify User Intent"
+    action: tool_call
+    tool: classify_user
+    args:
+      user_type: student
+      from_country: BD
+      to_country: CN
+      purpose: tuition
+    expect:
+      status: classified
+      corridor: BD-CN
+
+  - name: "Lookup University Payment Channels"
+    action: tool_call
+    tool: lookup_university
+    args:
+      query: "Shenzhen University"
+    expect:
+      found: true
+      slug: szu
+
+  - name: "Query Corridor Rules and Daily Cap"
+    action: tool_call
+    tool: get_corridor_rules
+    args:
+      corridor: BD-CN
+    expect:
+      corridor: BD-CN
+      daily_cap: "500000.00"
+
+  - name: "Build Compliant Multi-Leg Plan"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: BD-CN
+      target_amount: 45000.00
+      target_ccy: CNY
+      currency_from: BDT
+      rail_preference: cheapest
+    expect:
+      status: draft
+      number_of_legs: 2
+
+  - name: "Request Human Approval"
+    action: tool_call
+    tool: request_human_approval
+    args:
+      summary: "Approve 45,000 CNY tuition payment to Shenzhen University in 2 legs"
+    expect:
+      requires_approval: true
+      status: pending_user_confirmation
+
+  - name: "Verify Defense: Reject Unapproved Execution"
+    action: assert_unapproved_execution_fails
+
+  - name: "Human Approval Gate Confirmation"
+    action: approve_active_plan
+
+  - name: "Execute Approved Transfer Plan"
+    action: execute_active_plan
+    expect:
+      status: executed
+
+success_criteria:
+  - plan_status == "executed"
+  - number_of_legs == 2
+  - target_amount == 45000.00
+  - target_ccy == "CNY"
+  - ledger_entries_count == 2
+  - no_unapproved_execution == true
+  - audit_logged == true
+

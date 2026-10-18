@@ -1,0 +1,444 @@
+{
+  "task_id": "T5",
+  "task_name": "Second leg fails; system detects, replans, requests approval, and completes safely",
+  "passed": true,
+  "error": null,
+  "duration_seconds": 0.41,
+  "timestamp": "2026-10-18T06:39:50.368038+00:00",
+  "inputs": {
+    "target_amount": 45000.0,
+    "target_ccy": "CNY",
+    "currency_from": "BDT",
+    "failing_leg_index": 1,
+    "failing_rail": "bdt_bank_wire",
+    "recovery_rail": "unionpay_intl"
+  },
+  "step_results": [
+    {
+      "step_index": 1,
+      "name": "Classify User Intent",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "classify_user",
+        "args": {
+          "user_type": "student",
+          "from_country": "BD",
+          "to_country": "CN",
+          "purpose": "tuition"
+        },
+        "result": {
+          "status": "classified",
+          "user_type": "student",
+          "corridor": "BD-CN",
+          "purpose": "tuition",
+          "is_simulated": true
+        }
+      }
+    },
+    {
+      "step_index": 2,
+      "name": "Build Initial 2-Leg Plan",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "create_transfer_plan",
+        "args": {
+          "corridor": "BD-CN",
+          "target_amount": 45000.0,
+          "target_ccy": "CNY",
+          "currency_from": "BDT",
+          "rail_preference": "cheapest"
+        },
+        "result": {
+          "plan_id": 17,
+          "status": "draft",
+          "corridor": "BD-CN",
+          "total_source_amount": "750000.00",
+          "currency_from": "BDT",
+          "target_amount": "45000.0",
+          "target_ccy": "CNY",
+          "total_cost": "754750.00",
+          "number_of_legs": 2,
+          "legs": [
+            {
+              "leg_index": 0,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.00",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2375.00",
+              "estimated_speed": "2-3 business days",
+              "status": "planned"
+            },
+            {
+              "leg_index": 1,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.00",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2375.00",
+              "estimated_speed": "2-3 business days",
+              "status": "planned"
+            }
+          ],
+          "warnings": [
+            "Transfer amount 750000.00 BDT exceeds single transaction cap 500000.0 BDT; split into 2 compliant legs."
+          ],
+          "requires_approval": false
+        }
+      }
+    },
+    {
+      "step_index": 3,
+      "name": "Request Approval for Initial Plan",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "request_human_approval",
+        "args": {
+          "summary": "Approve 45,000 CNY tuition transfer in 2 legs",
+          "plan_id": 17
+        },
+        "result": {
+          "requires_approval": true,
+          "plan_id": 17,
+          "summary": "Approve 45,000 CNY tuition transfer in 2 legs",
+          "status": "pending_user_confirmation",
+          "expires_in_seconds": 300
+        }
+      }
+    },
+    {
+      "step_index": 4,
+      "name": "User Approves Initial Plan",
+      "action": "approve_active_plan",
+      "status": "passed",
+      "details": {
+        "plan_id": 17,
+        "approval_status": "approved"
+      }
+    },
+    {
+      "step_index": 5,
+      "name": "Inject Simulated Rail Failure on Leg 1",
+      "action": "inject_rail_failure",
+      "status": "passed",
+      "details": {
+        "failure_injected": {
+          "leg_index": 1,
+          "rail_id": "bdt_bank_wire",
+          "error_code": "SIMULATED_RAIL_TIMEOUT"
+        }
+      }
+    },
+    {
+      "step_index": 6,
+      "name": "Attempt Execution with Rail Failure",
+      "action": "execute_failing_plan",
+      "status": "passed",
+      "details": {
+        "detected_failure": {
+          "status": "failed",
+          "receipt_id": "REC-17-701F9427",
+          "audit_hash": "c98a7fe11cf4a8ef2777b46a90afb6d01b53a80b3a12a4a09a3e60100c4bc6fb",
+          "failed_leg": {
+            "status": "failed",
+            "idempotency_key": "plan_17:1",
+            "leg_index": 1,
+            "rail_id": "bdt_bank_wire",
+            "error_code": "SIMULATED_RAIL_TIMEOUT",
+            "error_message": "Downstream SWIFT banking partner timed out on Leg 2.",
+            "failed_at": "2026-10-18T06:39:50.359534+00:00",
+            "is_simulated": true
+          },
+          "legs": [
+            {
+              "status": "executed",
+              "idempotency_key": "plan_17:0",
+              "leg_index": 0,
+              "rail_id": "bdt_bank_wire",
+              "rail_name": "Bangladesh Bank SWIFT Education Wire",
+              "amount": "22500.00",
+              "currency": "CNY",
+              "reference": "SIM-TX-5BE45C22D723",
+              "executed_at": "2026-10-18T06:39:50.358534+00:00",
+              "is_simulated": true
+            },
+            {
+              "status": "failed",
+              "idempotency_key": "plan_17:1",
+              "leg_index": 1,
+              "rail_id": "bdt_bank_wire",
+              "error_code": "SIMULATED_RAIL_TIMEOUT",
+              "error_message": "Downstream SWIFT banking partner timed out on Leg 2.",
+              "failed_at": "2026-10-18T06:39:50.359534+00:00",
+              "is_simulated": true
+            }
+          ],
+          "error": "Downstream SWIFT banking partner timed out on Leg 2.",
+          "is_simulated": true
+        }
+      }
+    },
+    {
+      "step_index": 7,
+      "name": "Verify Safety: Leg 0 Succeeded, Leg 1 Not Double-Charged",
+      "action": "assert_partial_state_safety",
+      "status": "passed",
+      "details": {
+        "settled_count": 1
+      }
+    },
+    {
+      "step_index": 8,
+      "name": "Query Alternative Payment Rails for Recovery",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "list_payment_rails",
+        "args": {
+          "corridor": "BD-CN",
+          "from_ccy": "BDT",
+          "to_ccy": "CNY"
+        },
+        "result": {
+          "corridor": "BD-CN",
+          "count": 4,
+          "rails": [
+            {
+              "rail_id": "bdt_bank_wire",
+              "name": "Bangladesh Bank SWIFT Education Wire",
+              "supported_corridors": [
+                "BD-CN",
+                "BD-GB"
+              ],
+              "source_currencies": [
+                "BDT"
+              ],
+              "target_currencies": [
+                "CNY",
+                "GBP",
+                "USD"
+              ],
+              "fee_pct": 0.005,
+              "fixed_fee": 500.0,
+              "min_fee": 500.0,
+              "max_per_txn": 500000.0,
+              "estimated_speed": "2-3 business days",
+              "compliance_level": "standard",
+              "description": "Direct central bank approved education wire transfer.",
+              "is_simulated": true
+            },
+            {
+              "rail_id": "alipay_crossborder",
+              "name": "Alipay Cross-Border Tuition Rail",
+              "supported_corridors": [
+                "BD-CN"
+              ],
+              "source_currencies": [
+                "BDT"
+              ],
+              "target_currencies": [
+                "CNY"
+              ],
+              "fee_pct": 0.008,
+              "fixed_fee": 300.0,
+              "min_fee": 300.0,
+              "max_per_txn": 400000.0,
+              "estimated_speed": "Instant - 2 hours",
+              "compliance_level": "enhanced",
+              "description": "Real-time educational remittance directly to Chinese university accounts.",
+              "is_simulated": true
+            },
+            {
+              "rail_id": "unionpay_intl",
+              "name": "UnionPay International Direct",
+              "supported_corridors": [
+                "BD-CN"
+              ],
+              "source_currencies": [
+                "BDT"
+              ],
+              "target_currencies": [
+                "CNY"
+              ],
+              "fee_pct": 0.006,
+              "fixed_fee": 400.0,
+              "min_fee": 400.0,
+              "max_per_txn": 500000.0,
+              "estimated_speed": "1 business day",
+              "compliance_level": "enhanced",
+              "description": "UnionPay international cross-border settlement rail.",
+              "is_simulated": true
+            },
+            {
+              "rail_id": "flywire_edu",
+              "name": "Flywire Global Education Payment Rail",
+              "supported_corridors": [
+                "IN-GB",
+                "BD-CN"
+              ],
+              "source_currencies": [
+                "INR",
+                "BDT"
+              ],
+              "target_currencies": [
+                "GBP",
+                "CNY",
+                "SGD",
+                "AUD"
+              ],
+              "fee_pct": 0.007,
+              "fixed_fee": 600.0,
+              "min_fee": 600.0,
+              "max_per_txn": 700000.0,
+              "estimated_speed": "1-2 business days",
+              "compliance_level": "enhanced",
+              "description": "Specialized tuition payment network with tracking ID.",
+              "is_simulated": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step_index": 9,
+      "name": "Create Recovery Plan for Remaining Leg on Alternative Rail",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "create_transfer_plan",
+        "args": {
+          "corridor": "BD-CN",
+          "target_amount": 22500.0,
+          "target_ccy": "CNY",
+          "currency_from": "BDT",
+          "rail_preference": "unionpay_intl"
+        },
+        "result": {
+          "plan_id": 18,
+          "status": "draft",
+          "corridor": "BD-CN",
+          "total_source_amount": "375000.00",
+          "currency_from": "BDT",
+          "target_amount": "22500.0",
+          "target_ccy": "CNY",
+          "total_cost": "377650.00",
+          "number_of_legs": 1,
+          "legs": [
+            {
+              "leg_index": 0,
+              "rail_id": "unionpay_intl",
+              "rail_name": "UnionPay International Direct",
+              "amount_from": "375000.00",
+              "currency_from": "BDT",
+              "target_amount": "22500.0",
+              "target_ccy": "CNY",
+              "exchange_rate": "0.060000",
+              "fee": "2650.00",
+              "estimated_speed": "1 business day",
+              "status": "planned"
+            }
+          ],
+          "warnings": [],
+          "requires_approval": false
+        }
+      }
+    },
+    {
+      "step_index": 10,
+      "name": "Request Human Approval for Recovery Plan",
+      "action": "tool_call",
+      "status": "passed",
+      "details": {
+        "tool": "request_human_approval",
+        "args": {
+          "summary": "Approve re-routed Leg 2 (22,500 CNY) via UnionPay International",
+          "plan_id": 18
+        },
+        "result": {
+          "requires_approval": true,
+          "plan_id": 18,
+          "summary": "Approve re-routed Leg 2 (22,500 CNY) via UnionPay International",
+          "status": "pending_user_confirmation",
+          "expires_in_seconds": 300
+        }
+      }
+    },
+    {
+      "step_index": 11,
+      "name": "Verify Defense: Reject Unapproved Recovery Execution",
+      "action": "assert_unapproved_execution_fails",
+      "status": "passed",
+      "details": {
+        "unapproved_result": {
+          "status": "failed",
+          "error": "Plan #18 is not approved (current status: pending). Explicit user approval is required."
+        }
+      }
+    },
+    {
+      "step_index": 12,
+      "name": "User Approves Recovery Plan",
+      "action": "approve_active_plan",
+      "status": "passed",
+      "details": {
+        "plan_id": 18,
+        "approval_status": "approved"
+      }
+    },
+    {
+      "step_index": 13,
+      "name": "Execute Recovery Plan",
+      "action": "execute_active_plan",
+      "status": "passed",
+      "details": {
+        "execution_result": {
+          "status": "executed",
+          "plan_id": 18,
+          "receipt_id": "REC-18-2C7CA529",
+          "audit_hash": "a68add8252f791d85910d1db5190aad0314a7cbc416f33509ae4c6748e9ff3f2",
+          "target_amount": "22500.00",
+          "target_ccy": "CNY",
+          "legs": [
+            {
+              "status": "executed",
+              "idempotency_key": "plan_18:0",
+              "leg_index": 0,
+              "rail_id": "unionpay_intl",
+              "rail_name": "UnionPay International Direct",
+              "amount": "22500.0",
+              "currency": "CNY",
+              "reference": "SIM-TX-43A0F8646192",
+              "executed_at": "2026-10-18T06:39:50.365536+00:00",
+              "is_simulated": true
+            }
+          ],
+          "is_simulated": true
+        }
+      }
+    }
+  ],
+  "criteria_results": {
+    "failure_detected == true": true,
+    "initial_leg_settled == true": true,
+    "recovery_plan_executed == true": true,
+    "total_delivered_target_amount == 45000.00": true,
+    "total_ledger_entries == 2": true,
+    "no_unapproved_execution == true": true,
+    "audit_logged == true": true
+  },
+  "execution_metrics": {
+    "active_plan_id": 18,
+    "active_plan_status": "executed",
+    "ledger_entries_created": 2,
+    "audit_logs_recorded": 11
+  }
+}

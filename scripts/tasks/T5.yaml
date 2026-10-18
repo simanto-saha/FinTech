@@ -1,0 +1,113 @@
+id: T5
+name: "Second leg fails; system detects, replans, requests approval, and completes safely"
+description: "Simulates a downstream rail timeout during Leg 2 of a multi-leg tuition transfer. Fundora detects the failure, halts without fund loss, re-routes the remaining amount to an alternative compliant rail, requests fresh approval, and safely completes the transfer."
+user_type: student
+corridor: BD-CN
+inputs:
+  target_amount: 45000.00
+  target_ccy: CNY
+  currency_from: BDT
+  failing_leg_index: 1
+  failing_rail: "bdt_bank_wire"
+  recovery_rail: "unionpay_intl"
+steps:
+  - name: "Classify User Intent"
+    action: tool_call
+    tool: classify_user
+    args:
+      user_type: student
+      from_country: BD
+      to_country: CN
+      purpose: tuition
+    expect:
+      status: classified
+
+  - name: "Build Initial 2-Leg Plan"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: BD-CN
+      target_amount: 45000.00
+      target_ccy: CNY
+      currency_from: BDT
+      rail_preference: cheapest
+    expect:
+      status: draft
+      number_of_legs: 2
+
+  - name: "Request Approval for Initial Plan"
+    action: tool_call
+    tool: request_human_approval
+    args:
+      summary: "Approve 45,000 CNY tuition transfer in 2 legs"
+    expect:
+      requires_approval: true
+
+  - name: "User Approves Initial Plan"
+    action: approve_active_plan
+
+  - name: "Inject Simulated Rail Failure on Leg 1"
+    action: inject_rail_failure
+    leg_index: 1
+    rail_id: bdt_bank_wire
+    error_code: SIMULATED_RAIL_TIMEOUT
+    error_message: "Downstream SWIFT banking partner timed out on Leg 2."
+
+  - name: "Attempt Execution with Rail Failure"
+    action: execute_failing_plan
+    expect:
+      status: failed
+      failure_detected: true
+
+  - name: "Verify Safety: Leg 0 Succeeded, Leg 1 Not Double-Charged"
+    action: assert_partial_state_safety
+
+  - name: "Query Alternative Payment Rails for Recovery"
+    action: tool_call
+    tool: list_payment_rails
+    args:
+      corridor: BD-CN
+      from_ccy: BDT
+      to_ccy: CNY
+
+  - name: "Create Recovery Plan for Remaining Leg on Alternative Rail"
+    action: tool_call
+    tool: create_transfer_plan
+    args:
+      corridor: BD-CN
+      target_amount: 22500.00
+      target_ccy: CNY
+      currency_from: BDT
+      rail_preference: unionpay_intl
+    expect:
+      status: draft
+      number_of_legs: 1
+
+  - name: "Request Human Approval for Recovery Plan"
+    action: tool_call
+    tool: request_human_approval
+    args:
+      summary: "Approve re-routed Leg 2 (22,500 CNY) via UnionPay International"
+    expect:
+      requires_approval: true
+
+  - name: "Verify Defense: Reject Unapproved Recovery Execution"
+    action: assert_unapproved_execution_fails
+
+  - name: "User Approves Recovery Plan"
+    action: approve_active_plan
+
+  - name: "Execute Recovery Plan"
+    action: execute_active_plan
+    expect:
+      status: executed
+
+success_criteria:
+  - failure_detected == true
+  - initial_leg_settled == true
+  - recovery_plan_executed == true
+  - total_delivered_target_amount == 45000.00
+  - total_ledger_entries == 2
+  - no_unapproved_execution == true
+  - audit_logged == true
+

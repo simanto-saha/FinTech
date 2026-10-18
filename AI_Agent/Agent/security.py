@@ -196,7 +196,7 @@ def mask(field: str, value: Optional[str]) -> str:
 
     f = field.strip().lower()
 
-    if f in ("passport_no", "account_no", "card_no", "passport", "account_number", "card_number", "iban"):
+    if f in ("passport_no", "account_no", "card_no", "passport", "account_number", "card_number", "iban", "bank_account_no", "bank_account"):
         if len(clean_val) <= 4:
             return "•••• " + clean_val
         return "•••• " + clean_val[-4:]
@@ -271,6 +271,10 @@ def wrap_untrusted(text: str) -> str:
         "---\n"
         "</untrusted_document>"
     )
+
+
+# Convenience alias per spec
+wrap_untrusted_document = wrap_untrusted
 
 
 def validate_tool_call(tool_name: str, arguments: Optional[Dict[str, Any]]) -> Dict[str, Any]:
