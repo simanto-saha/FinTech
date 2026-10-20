@@ -3,8 +3,8 @@
   "task_name": "Second leg fails; system detects, replans, requests approval, and completes safely",
   "passed": true,
   "error": null,
-  "duration_seconds": 0.41,
-  "timestamp": "2026-10-18T06:39:50.368038+00:00",
+  "duration_seconds": 0.383,
+  "timestamp": "2026-10-20T13:00:31.147406+00:00",
   "inputs": {
     "target_amount": 45000.0,
     "target_ccy": "CNY",
@@ -146,8 +146,8 @@
       "details": {
         "detected_failure": {
           "status": "failed",
-          "receipt_id": "REC-17-701F9427",
-          "audit_hash": "c98a7fe11cf4a8ef2777b46a90afb6d01b53a80b3a12a4a09a3e60100c4bc6fb",
+          "receipt_id": "REC-17-0977D3FB",
+          "audit_hash": "5658e3d12d7e9d97b70ab0fb51220d83f5693d82ed089c03d78efbba56bb0b5c",
           "failed_leg": {
             "status": "failed",
             "idempotency_key": "plan_17:1",
@@ -155,7 +155,7 @@
             "rail_id": "bdt_bank_wire",
             "error_code": "SIMULATED_RAIL_TIMEOUT",
             "error_message": "Downstream SWIFT banking partner timed out on Leg 2.",
-            "failed_at": "2026-10-18T06:39:50.359534+00:00",
+            "failed_at": "2026-10-20T13:00:31.132392+00:00",
             "is_simulated": true
           },
           "legs": [
@@ -167,8 +167,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-5BE45C22D723",
-              "executed_at": "2026-10-18T06:39:50.358534+00:00",
+              "reference": "SIM-TX-345FB106B292",
+              "executed_at": "2026-10-20T13:00:31.131391+00:00",
               "is_simulated": true
             },
             {
@@ -178,7 +178,7 @@
               "rail_id": "bdt_bank_wire",
               "error_code": "SIMULATED_RAIL_TIMEOUT",
               "error_message": "Downstream SWIFT banking partner timed out on Leg 2.",
-              "failed_at": "2026-10-18T06:39:50.359534+00:00",
+              "failed_at": "2026-10-20T13:00:31.132392+00:00",
               "is_simulated": true
             }
           ],
@@ -403,8 +403,8 @@
         "execution_result": {
           "status": "executed",
           "plan_id": 18,
-          "receipt_id": "REC-18-2C7CA529",
-          "audit_hash": "a68add8252f791d85910d1db5190aad0314a7cbc416f33509ae4c6748e9ff3f2",
+          "receipt_id": "REC-18-AE2BEBE9",
+          "audit_hash": "4676ab718e58df2fc2f21e5107ed63a6cd85b28f8e660cf3f9b1e4f458c4dab4",
           "target_amount": "22500.00",
           "target_ccy": "CNY",
           "legs": [
@@ -416,8 +416,8 @@
               "rail_name": "UnionPay International Direct",
               "amount": "22500.0",
               "currency": "CNY",
-              "reference": "SIM-TX-43A0F8646192",
-              "executed_at": "2026-10-18T06:39:50.365536+00:00",
+              "reference": "SIM-TX-A24375179E5E",
+              "executed_at": "2026-10-20T13:00:31.142899+00:00",
               "is_simulated": true
             }
           ],

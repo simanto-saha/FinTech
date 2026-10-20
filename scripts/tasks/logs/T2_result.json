@@ -3,8 +3,8 @@
   "task_name": "Worker remittance PH->AE via single leg",
   "passed": true,
   "error": null,
-  "duration_seconds": 0.394,
-  "timestamp": "2026-10-18T06:39:49.098779+00:00",
+  "duration_seconds": 0.391,
+  "timestamp": "2026-10-20T13:00:29.968997+00:00",
   "inputs": {
     "amount_from": 30000.0,
     "currency_from": "PHP",
@@ -160,8 +160,8 @@
         "execution_result": {
           "status": "executed",
           "plan_id": 13,
-          "receipt_id": "REC-13-3BD8BD72",
-          "audit_hash": "759950eeef78f8040642575385801d2c3bd78cd5f44d88e084dc328d04e00f8c",
+          "receipt_id": "REC-13-050FEA5D",
+          "audit_hash": "48de3a4ca7651d047988d31a59836a7cec2af18f66c01dd535adc917197c5a32",
           "target_amount": "2000.00",
           "target_ccy": "AED",
           "legs": [
@@ -173,8 +173,8 @@
               "rail_name": "Wise Multi-Currency Direct Transfer",
               "amount": "2000.0",
               "currency": "AED",
-              "reference": "SIM-TX-47B20C89D1E3",
-              "executed_at": "2026-10-18T06:39:49.096652+00:00",
+              "reference": "SIM-TX-7AD6B45E8E38",
+              "executed_at": "2026-10-20T13:00:29.966996+00:00",
               "is_simulated": true
             }
           ],

@@ -3,8 +3,8 @@
   "task_name": "Invoice upload, extraction, verification, and plan creation",
   "passed": true,
   "error": null,
-  "duration_seconds": 0.398,
-  "timestamp": "2026-10-18T06:39:49.516090+00:00",
+  "duration_seconds": 0.374,
+  "timestamp": "2026-10-20T13:00:30.361542+00:00",
   "inputs": {
     "document_file": "Shenzhen_University_Tuition_Invoice_Fall2026.pdf",
     "doc_type": "university_fee_invoice",
@@ -237,8 +237,8 @@
         "execution_result": {
           "status": "executed",
           "plan_id": 14,
-          "receipt_id": "REC-14-216CC7DE",
-          "audit_hash": "26799ec630b527c7f5e7a2fe5b3401c2f8e35d0d909cb63630bb8edaf4b05ff2",
+          "receipt_id": "REC-14-C541C8FC",
+          "audit_hash": "2c79e0f213bedbb93dd41d8149b026254f8a9d9f8c783a9e66563292bfa4c14a",
           "target_amount": "45000.00",
           "target_ccy": "CNY",
           "legs": [
@@ -250,8 +250,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-7FC9188927EB",
-              "executed_at": "2026-10-18T06:39:49.511488+00:00",
+              "reference": "SIM-TX-A556EAC9E809",
+              "executed_at": "2026-10-20T13:00:30.358543+00:00",
               "is_simulated": true
             },
             {
@@ -262,8 +262,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-78C82E0988BA",
-              "executed_at": "2026-10-18T06:39:49.512994+00:00",
+              "reference": "SIM-TX-412E1DC5B148",
+              "executed_at": "2026-10-20T13:00:30.358543+00:00",
               "is_simulated": true
             }
           ],

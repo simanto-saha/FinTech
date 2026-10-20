@@ -203,21 +203,37 @@ def submit_ai_question(request):
         question.save(update_fields=["answer_text"])
 
         approval_data = None
-        if agent_result.get("type") == "approval" and agent_result.get("plan_id"):
-            plan_id = agent_result["plan_id"]
+        plan_id = agent_result.get("plan_id")
+        if not plan_id and agent_result.get("cards"):
+            for card in agent_result.get("cards", []):
+                if isinstance(card, dict) and card.get("card_type") == "approval" and card.get("plan_id"):
+                    plan_id = card["plan_id"]
+                    break
+
+        if not plan_id:
+            active_app = Approval.objects.filter(
+                user=request.user,
+                status=Approval.Status.PENDING,
+                expires_at__gt=timezone.now(),
+            ).order_by("-created_at").first()
+            if active_app:
+                plan_id = active_app.plan_id
+
+        if plan_id:
             approval = Approval.objects.filter(
                 plan_id=plan_id,
                 user=request.user,
                 status=Approval.Status.PENDING,
             ).first()
             if approval:
+                plan_obj = getattr(approval, "plan", None)
                 approval_data = {
                     "plan_id": plan_id,
                     "approval_token": approval.token,
                     "expires_at": approval.expires_at.isoformat(),
-                    "total_cost": agent_result.get("total_cost"),
-                    "target_amount": agent_result.get("target_amount"),
-                    "target_ccy": agent_result.get("target_ccy"),
+                    "total_cost": str(agent_result.get("total_cost") or (plan_obj.total_cost if plan_obj else "")),
+                    "target_amount": str(agent_result.get("target_amount") or (plan_obj.target_amount if plan_obj else "")),
+                    "target_ccy": str(agent_result.get("target_ccy") or (plan_obj.target_ccy if plan_obj else "CNY")),
                 }
 
     return JsonResponse(

@@ -3,8 +3,8 @@
   "task_name": "Mid-flow university correction; plan updates without losing context",
   "passed": true,
   "error": null,
-  "duration_seconds": 0.405,
-  "timestamp": "2026-10-18T06:39:49.939082+00:00",
+  "duration_seconds": 0.367,
+  "timestamp": "2026-10-20T13:00:30.746674+00:00",
   "inputs": {
     "initial_university": "Shenzhen University",
     "corrected_university": "Tsinghua University",
@@ -335,8 +335,8 @@
         "execution_result": {
           "status": "executed",
           "plan_id": 16,
-          "receipt_id": "REC-16-8A65ACAF",
-          "audit_hash": "58e59cc3ff87a503ed2bc9977c61a62a7a63683e2460f5a73a8f3cbd66611931",
+          "receipt_id": "REC-16-2D91BC07",
+          "audit_hash": "753a54738254f8034608e11b9b8a780f168b887b665dde7081fd973c0c324472",
           "target_amount": "45000.00",
           "target_ccy": "CNY",
           "legs": [
@@ -348,8 +348,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-E2182CE30C87",
-              "executed_at": "2026-10-18T06:39:49.935425+00:00",
+              "reference": "SIM-TX-7F9A3ADDABC0",
+              "executed_at": "2026-10-20T13:00:30.743167+00:00",
               "is_simulated": true
             },
             {
@@ -360,8 +360,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-1F7F22D004CA",
-              "executed_at": "2026-10-18T06:39:49.935929+00:00",
+              "reference": "SIM-TX-94C69A2D78E1",
+              "executed_at": "2026-10-20T13:00:30.744166+00:00",
               "is_simulated": true
             }
           ],

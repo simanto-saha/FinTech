@@ -56,3 +56,9 @@ ehthumbs.db
 
 # Command scratch files
 comand.txt
+
+# Generated Demonstration Media
+docs/demo_video/*.webm
+docs/demo_video/*.mp4
+!docs/demo_video/README.md
+

@@ -3,8 +3,8 @@
   "task_name": "Student tuition BD->CN split into two legs (cap breach)",
   "passed": true,
   "error": null,
-  "duration_seconds": 0.422,
-  "timestamp": "2026-10-18T06:39:48.687646+00:00",
+  "duration_seconds": 0.364,
+  "timestamp": "2026-10-20T13:00:29.561367+00:00",
   "inputs": {
     "amount_from": 750000.0,
     "currency_from": "BDT",
@@ -234,8 +234,8 @@
         "execution_result": {
           "status": "executed",
           "plan_id": 12,
-          "receipt_id": "REC-12-E057EDAC",
-          "audit_hash": "1ba33cdeb4ec1403d1a043707e252b9d6b2aedd6166bacd612ffc6ddd3b1f655",
+          "receipt_id": "REC-12-306CA674",
+          "audit_hash": "2ee544b8d1ecba24b657b6cfb033c5be712a85afd63a976e726f634d829a2934",
           "target_amount": "45000.00",
           "target_ccy": "CNY",
           "legs": [
@@ -247,8 +247,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-DC08D3BD70CE",
-              "executed_at": "2026-10-18T06:39:48.684646+00:00",
+              "reference": "SIM-TX-149D4A242533",
+              "executed_at": "2026-10-20T13:00:29.557860+00:00",
               "is_simulated": true
             },
             {
@@ -259,8 +259,8 @@
               "rail_name": "Bangladesh Bank SWIFT Education Wire",
               "amount": "22500.00",
               "currency": "CNY",
-              "reference": "SIM-TX-72BA2D567A3C",
-              "executed_at": "2026-10-18T06:39:48.685646+00:00",
+              "reference": "SIM-TX-CE82070839A1",
+              "executed_at": "2026-10-20T13:00:29.559363+00:00",
               "is_simulated": true
             }
           ],
